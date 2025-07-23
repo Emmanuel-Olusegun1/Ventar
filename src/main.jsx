@@ -19,7 +19,7 @@ const router = createBrowserRouter([
     element: <HostSignUp />,
   },
   {
-    path: '/host-signin',
+    path: '/host-login',
     element: <HostSignIn />,
   },
 ])
