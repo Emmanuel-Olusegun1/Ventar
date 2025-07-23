@@ -354,9 +354,10 @@ function App() {
           </div>
           <div className="pt-8 border-t border-gray-800 text-center">
             <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
+            <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
           </div>
         </div>
-        <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
+     
       </footer>
     </div>
   )

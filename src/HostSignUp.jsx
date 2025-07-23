@@ -326,7 +326,7 @@ function HostSignUp() {
               <p className="text-gray-600 mb-6">
                 Join the community of successful event hosts and start creating memorable experiences today.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              {/* <div className="flex flex-col sm:flex-row gap-4">
                 <a
                   href="/free-trial"
                   className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-center transition-colors"
@@ -339,7 +339,7 @@ function HostSignUp() {
                 >
                   View Demo
                 </a>
-              </div>
+              </div> */}
             </div>
           </motion.div>
         </div>
@@ -349,8 +349,9 @@ function HostSignUp() {
       <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
         <div className="container mx-auto px-6 text-center text-gray-500">
           <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
+          <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
         </div>
-        <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
+       
       </footer>
     </div>
   );

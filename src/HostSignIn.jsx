@@ -135,8 +135,9 @@ function HostSignIn() {
       <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
         <div className="container mx-auto px-6 text-center text-gray-500">
           <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
+          <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
         </div>
-        <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
+
       </footer>
     </div>
   )
