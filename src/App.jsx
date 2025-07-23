@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine, FaRegCheckCircle, FaHeadset, FaTimes, FaBars } from 'react-icons/fa'
 import { IoRibbonOutline } from 'react-icons/io5'
 import { BsArrowRight, BsLightningFill } from 'react-icons/bs'
