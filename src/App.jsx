@@ -1,294 +1,306 @@
 import { motion } from 'framer-motion'
-import Header from './components/Header'
-import AnimatedButton from './components/AnimatedButton'
-import FeatureCard from './components/FeatureCard'
-import Testimonial from './components/Testimonial'
-import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine } from 'react-icons/fa'
-import { IoMdRibbon } from 'react-icons/io'
-import { BsStars } from 'react-icons/bs'
+import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine, FaRegCheckCircle, FaHeadset } from 'react-icons/fa'
+import { IoRibbonOutline } from 'react-icons/io5'
+import { BsArrowRight, BsLightningFill } from 'react-icons/bs'
 
 function App() {
-  const features = [
-    {
-      icon: <FaCalendarAlt className="text-3xl" />,
-      title: "Easy Event Creation",
-      description: "Create and manage events in minutes with our intuitive interface.",
-      highlights: ["Drag-and-drop builder", "Templates", "Smart suggestions"]
-    },
-    {
-      icon: <FaTicketAlt className="text-3xl" />,
-      title: "Seamless Registration",
-      description: "Attendees can register with just a few clicks.",
-      highlights: ["One-click signup", "Social login", "Mobile optimized"]
-    },
-    {
-      icon: <FaUsers className="text-3xl" />,
-      title: "Attendee Management",
-      description: "Track and communicate with your attendees effortlessly.",
-      highlights: ["CRM integration", "Automated emails", "Badge printing"]
-    },
-    {
-      icon: <FaChartLine className="text-3xl" />,
-      title: "Real-time Analytics",
-      description: "Get insights into your event's performance.",
-      highlights: ["Live dashboards", "Engagement metrics", "ROI tracking"]
-    }
-  ];
-
-  const testimonials = [
-    {
-      quote: "Ventar made organizing our conference so much easier. The analytics helped us understand our audience better.",
-      author: "Sarah Johnson",
-      role: "Event Organizer",
-      rating: 5
-    },
-    {
-      quote: "As a frequent event attendee, I love how simple Ventar makes the registration process.",
-      author: "Michael Chen",
-      role: "Tech Enthusiast",
-      rating: 4
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-100/50 font-sans">
-      {/* Floating decorative elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-20 w-56 h-56 bg-green-200 rounded-full blur-3xl opacity-10"></div>
-        <div className="absolute bottom-10 right-20 w-72 h-72 bg-green-300 rounded-full blur-3xl opacity-15"></div>
-      </div>
-      
-      <Header />
-      
-      <main className="container mx-auto px-6 py-20 relative z-10">
-        {/* Hero Section */}
-        <section className="text-center mb-28 max-w-5xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="inline-flex items-center gap-3 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 px-5 py-2 rounded-full mb-8 shadow-sm"
-          >
-            <IoMdRibbon className="text-green-600" />
-            <span className="text-sm font-semibold tracking-tight">Trusted by 10,000+ organizers</span>
-          </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight"
-          >
-            Elevate Your <span className="bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">Event Journey</span>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.9, ease: "easeOut" }}
-            className="text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed"
-          >
-            Your all-in-one platform for crafting seamless events with cutting-edge tools and insights.
-          </motion.p>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-5 mb-16">
-            <AnimatedButton 
-              text="Join as Attendee" 
-              href="/attendee" 
-              primary 
-              icon={<FaTicketAlt className="ml-2" />}
-              className="px-8 py-3 text-lg"
-            />
-            <AnimatedButton 
-              text="Host an Event" 
-              href="/host" 
-              icon={<BsStars className="ml-2" />}
-              className="px-8 py-3 text-lg"
-            />
-          </div>
-        </section>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-2xl font-bold text-green-700"
+        >
+          Ventar
+        </motion.div>
+        <div className="hidden md:flex gap-6">
+          <a href="/host-signup" className="text-gray-700 hover:text-green-600 font-medium">Host Sign-Up</a>
+          <a href="/host-login" className="text-gray-700 hover:text-green-600 font-medium">Host Login</a>
+          <a href="/join" className="text-gray-700 hover:text-green-600 font-medium">Join Event</a>
+        </div>
+        <button className="md:hidden text-gray-700">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </nav>
 
-        {/* Features Section */}
-        <section className="mb-32">
+      {/* Hero Section */}
+      <section className="container mx-auto px-6 py-20 text-center">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+        >
+          Welcome to <span className="text-green-600">Ventar</span>
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10"
+        >
+          Create unforgettable events and connect with your community. The most intuitive event platform for modern organizers.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex flex-col sm:flex-row justify-center gap-4"
+        >
+          <a 
+            href="/join" 
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            Join an Event <BsArrowRight />
+          </a>
+          <a 
+            href="/host-signup" 
+            className="bg-white border border-green-600 text-green-600 hover:bg-green-50 px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            Become a Host <BsLightningFill />
+          </a>
+        </motion.div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="bg-green-50 py-16">
+        <div className="container mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { value: "10K+", label: "Events Created" },
+            { value: "50K+", label: "Active Users" },
+            { value: "99.9%", label: "Uptime" },
+            { value: "24/7", label: "Support" }
+          ].map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="text-3xl md:text-4xl font-bold text-green-700 mb-2">{stat.value}</div>
+              <div className="text-gray-600">{stat.label}</div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="container mx-auto px-6 py-20">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Ventar?</h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Experience the perfect blend of simplicity and power with our cutting-edge event management platform
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              icon: <FaCalendarAlt className="text-2xl text-green-600" />,
+              title: "Easy Events",
+              description: "Create stunning events and share them with beautiful, personalized links that engage your audience."
+            },
+            {
+              icon: <FaTicketAlt className="text-2xl text-green-600" />,
+              title: "Simple Registration",
+              description: "Join events instantly with one click. No complicated forms or lengthy signup processes required."
+            },
+            {
+              icon: <FaChartLine className="text-2xl text-green-600" />,
+              title: "Smart Management",
+              description: "Track attendance, analyze engagement, and manage your events with powerful real-time dashboards."
+            }
+          ].map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+            >
+              <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Join Event Section */}
+      <section className="bg-gray-50 py-20">
+        <div className="container mx-auto px-6 max-w-3xl">
           <motion.div 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="text-center mb-16"
+            className="bg-white p-8 md:p-10 rounded-xl shadow-sm border border-gray-200"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 tracking-tight">All-in-One Event Solution</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              From intimate gatherings to global conferences, streamline every step.
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Join an Event</h2>
+            <p className="text-gray-600 mb-6 text-center">Enter your event link below to get started</p>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <input 
+                type="text" 
+                placeholder="Enter event link (e.g., https://ventar.com/event_id=UUID)" 
+                className="flex-grow px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+              <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                Join Now
+              </button>
+            </div>
           </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
-                viewport={{ once: true }}
-              >
-                <FeatureCard 
-                  icon={feature.icon}
-                  title={feature.title}
-                  description={feature.description}
-                  highlights={feature.highlights}
-                  index={index}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Social Proof */}
-        <section className="mb-32 bg-gradient-to-r from-green-600 to-teal-600 rounded-3xl p-12 text-white shadow-xl">
-          <div className="max-w-5xl mx-auto text-center">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+      {/* Testimonials */}
+      <section className="container mx-auto px-6 py-20">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Trusted by Event Organizers</h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            See what our community has to say about Ventar
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              quote: "Ventar transformed how we manage corporate events. The interface is intuitive and the results are amazing!",
+              author: "Sarah Johnson",
+              role: "Event Coordinator"
+            },
+            {
+              quote: "Setting up events has never been this easy. Our attendance rates increased by 40% since switching to Ventar.",
+              author: "Michael Chen",
+              role: "Community Manager"
+            },
+            {
+              quote: "The analytics and reporting features give us insights we never had before. Highly recommend!",
+              author: "Emily Rodriguez",
+              role: "Marketing Director"
+            }
+          ].map((testimonial, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="bg-white p-8 rounded-xl shadow-sm border border-gray-100"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
-                <div className="text-center">
-                  <div className="text-5xl font-extrabold">50K+</div>
-                  <div className="text-green-100 text-lg">Events Created</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-5xl font-extrabold">2M+</div>
-                  <div className="text-green-100 text-lg">Attendees</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-5xl font-extrabold">98%</div>
-                  <div className="text-green-100 text-lg">Satisfaction</div>
+              <div className="flex mb-4 text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-gray-700 italic mb-6">"{testimonial.quote}"</p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full mr-4"></div>
+                <div>
+                  <div className="font-bold text-gray-900">{testimonial.author}</div>
+                  <div className="text-green-600">{testimonial.role}</div>
                 </div>
               </div>
-              <p className="text-xl text-green-50 mb-10 leading-relaxed">
-                Join a thriving community of organizers powering their events with Ventar.
-              </p>
-              <AnimatedButton 
-                text="Explore Case Studies" 
-                href="/case-studies" 
-                white 
-                outline
-                className="px-8 py-3 text-lg"
-              />
             </motion.div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
 
-        {/* Testimonials */}
-        <section className="mb-32">
-          <motion.div 
+      {/* Final CTA */}
+      <section className="bg-green-600 text-white py-20">
+        <div className="container mx-auto px-6 text-center">
+          <motion.h2 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="text-center mb-16"
+            className="text-3xl md:text-4xl font-bold mb-6"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 tracking-tight">Trusted by Our Community</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              See why organizers and attendees love using Ventar.
-            </p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.2, duration: 0.6, ease: "easeOut" }}
-                viewport={{ once: true }}
-              >
-                <Testimonial 
-                  quote={testimonial.quote}
-                  author={testimonial.author}
-                  role={testimonial.role}
-                  rating={testimonial.rating}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="relative overflow-hidden bg-gray-900 rounded-3xl p-12 text-white shadow-2xl">
-          <div className="absolute -right-20 -top-20 w-72 h-72 bg-green-500 rounded-full opacity-10 blur-3xl"></div>
-          <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-teal-500 rounded-full opacity-10 blur-3xl"></div>
-          
+            The future of event management
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            viewport={{ once: true }}
+            className="text-xl mb-10 max-w-3xl mx-auto"
+          >
+            Create, manage, and grow your events with the most intuitive platform available.
+          </motion.p>
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
+            transition={{ delay: 0.4 }}
             viewport={{ once: true }}
-            className="relative z-10 text-center max-w-4xl mx-auto"
+            className="flex flex-col sm:flex-row justify-center gap-4"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Ready to Transform Your Events?</h2>
-            <p className="text-xl text-gray-200 mb-10 leading-relaxed">
-              Start creating unforgettable experiences today. No credit card needed.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-5">
-              <AnimatedButton 
-                text="Get Started Free" 
-                href="/signup" 
-                primary 
-                large
-                className="px-8 py-3 text-lg"
-              />
-              <AnimatedButton 
-                text="Schedule Demo" 
-                href="/demo" 
-                white 
-                outline
-                large
-                className="px-8 py-3 text-lg"
-              />
-            </div>
+            <a 
+              href="/host-signup" 
+              className="bg-white text-green-700 hover:bg-gray-100 px-8 py-3 rounded-lg font-medium transition-colors"
+            >
+              Start Free Trial
+            </a>
+            <a 
+              href="/demo" 
+              className="bg-transparent border border-white text-white hover:bg-green-700 px-8 py-3 rounded-lg font-medium transition-colors"
+            >
+              Request Demo
+            </a>
           </motion.div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      <footer className="bg-gray-900 text-gray-300 py-16 relative z-10">
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-12">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="text-white text-xl font-semibold mb-5">Ventar</h3>
-              <p className="mb-6 text-gray-400 leading-relaxed">The ultimate platform for modern event management.</p>
-              <div className="flex gap-5">
-                {/* Social icons would go here */}
-              </div>
+              <div className="text-2xl font-bold text-white mb-4">Ventar</div>
+              <p className="mb-4">The complete event management platform for modern organizers.</p>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-5 text-lg">Product</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition duration-300">Features</a></li>
-                <li><a href="#" className="hover:text-white transition duration-300">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition duration-300">Integrations</a></li>
+              <h4 className="text-white font-medium mb-4">Quick Links</h4>
+              <ul className="space-y-2">
+                <li><a href="/host-signup" className="hover:text-white transition">Host Sign-Up</a></li>
+                <li><a href="/host-login" className="hover:text-white transition">Host Login</a></li>
+                <li><a href="/join" className="hover:text-white transition">Join Event</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-5 text-lg">Resources</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition duration-300">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition duration-300">Guides</a></li>
-                <li><a href="#" className="hover:text-white transition duration-300">Webinars</a></li>
+              <h4 className="text-white font-medium mb-4">Resources</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white transition">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition">Community</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-5 text-lg">Company</h4>
-              <ul className="space-y-3 text-gray-400">
-                <li><a href="#" className="hover:text-white transition duration-300">About</a></li>
-                <li><a href="#" className="hover:text-white transition duration-300">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition duration-300">Contact</a></li>
+              <h4 className="text-white font-medium mb-4">Company</h4>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white transition">About Us</a></li>
+                <li><a href="#" className="hover:text-white transition">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition">Contact</a></li>
               </ul>
             </div>
           </div>
-          <div className="pt-10 border-t border-gray-800 text-center text-sm text-gray-400">
+          <div className="pt-8 border-t border-gray-800 text-center">
             <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
           </div>
         </div>
