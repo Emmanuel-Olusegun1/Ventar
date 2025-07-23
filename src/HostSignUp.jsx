@@ -1,8 +1,61 @@
-import { motion } from 'framer-motion'
-import { FaCalendarAlt, FaUsers, FaChartLine, FaTools, FaCrown, FaShieldAlt } from 'react-icons/fa'
-import { BsArrowLeft, BsLightningFill } from 'react-icons/bs'
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FaCalendarAlt, FaUsers, FaChartLine, FaTools, FaCrown, FaShieldAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { BsArrowLeft, BsLightningFill } from 'react-icons/bs';
 
 function HostSignUp() {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    organization: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      // Form is valid, proceed with submission
+      console.log('Form submitted:', formData);
+      // Here you would typically send the data to your backend
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -84,7 +137,7 @@ function HostSignUp() {
                 Create your host account and launch your first event
               </p>
               
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
@@ -92,9 +145,13 @@ function HostSignUp() {
                   <input
                     type="text"
                     id="fullName"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                   />
+                  {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
                 </div>
                 
                 <div>
@@ -104,9 +161,13 @@ function HostSignUp() {
                   <input
                     type="email"
                     id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="Enter your email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                   />
+                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                 </div>
                 
                 <div>
@@ -116,6 +177,9 @@ function HostSignUp() {
                   <input
                     type="text"
                     id="organization"
+                    name="organization"
+                    value={formData.organization}
+                    onChange={handleChange}
                     placeholder="Company or organization"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
@@ -128,9 +192,62 @@ function HostSignUp() {
                   <input
                     type="tel"
                     id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     placeholder="Enter your phone number"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Create a password"
+                      className={`w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-3.5 text-gray-500 hover:text-green-600"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                  {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Confirm your password"
+                      className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-3.5 text-gray-500 hover:text-green-600"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
                 </div>
                 
                 <button
@@ -184,11 +301,6 @@ function HostSignUp() {
                   description: "Automated reminders, check-in systems, and seamless integrations"
                 },
                 {
-                  icon: <FaCrown className="text-green-600 text-xl" />,
-                  title: "Premium Features",
-                  description: "Advanced customization, branding options, and priority support"
-                },
-                {
                   icon: <FaShieldAlt className="text-green-600 text-xl" />,
                   title: "Secure & Reliable",
                   description: "Enterprise-grade security with 99.9% uptime guarantee"
@@ -219,7 +331,7 @@ function HostSignUp() {
                   href="/free-trial"
                   className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-center transition-colors"
                 >
-                  Start Free Trial
+                  Start Free
                 </a>
                 <a
                   href="/demo"
@@ -238,9 +350,10 @@ function HostSignUp() {
         <div className="container mx-auto px-6 text-center text-gray-500">
           <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
         </div>
+        <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
       </footer>
     </div>
-  )
+  );
 }
 
-export default HostSignUp
+export default HostSignUp;
