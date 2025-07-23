@@ -4,6 +4,12 @@ import { IoRibbonOutline } from 'react-icons/io5'
 import { BsArrowRight, BsLightningFill } from 'react-icons/bs'
 
 function App() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
