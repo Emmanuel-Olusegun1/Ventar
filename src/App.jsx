@@ -3,32 +3,32 @@ import Header from './components/Header'
 import AnimatedButton from './components/AnimatedButton'
 import FeatureCard from './components/FeatureCard'
 import Testimonial from './components/Testimonial'
-import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine, FaRegCheckCircle } from 'react-icons/fa'
+import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine } from 'react-icons/fa'
 import { IoMdRibbon } from 'react-icons/io'
 import { BsStars } from 'react-icons/bs'
 
 function App() {
   const features = [
     {
-      icon: <FaCalendarAlt className="text-2xl" />,
+      icon: <FaCalendarAlt className="text-3xl" />,
       title: "Easy Event Creation",
       description: "Create and manage events in minutes with our intuitive interface.",
-      highlights: ["Drag-and-drop builder", "Templates", "AI suggestions"]
+      highlights: ["Drag-and-drop builder", "Templates", "Smart suggestions"]
     },
     {
-      icon: <FaTicketAlt className="text-2xl" />,
+      icon: <FaTicketAlt className="text-3xl" />,
       title: "Seamless Registration",
       description: "Attendees can register with just a few clicks.",
       highlights: ["One-click signup", "Social login", "Mobile optimized"]
     },
     {
-      icon: <FaUsers className="text-2xl" />,
+      icon: <FaUsers className="text-3xl" />,
       title: "Attendee Management",
       description: "Track and communicate with your attendees effortlessly.",
       highlights: ["CRM integration", "Automated emails", "Badge printing"]
     },
     {
-      icon: <FaChartLine className="text-2xl" />,
+      icon: <FaChartLine className="text-3xl" />,
       title: "Real-time Analytics",
       description: "Get insights into your event's performance.",
       highlights: ["Live dashboards", "Engagement metrics", "ROI tracking"]
@@ -51,96 +51,85 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-100/50 font-sans">
       {/* Floating decorative elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-green-100 rounded-full blur-3xl opacity-20"></div>
-        <div className="absolute bottom-20 right-10 w-60 h-60 bg-green-200 rounded-full blur-3xl opacity-10"></div>
+        <div className="absolute top-10 left-20 w-56 h-56 bg-green-200 rounded-full blur-3xl opacity-10"></div>
+        <div className="absolute bottom-10 right-20 w-72 h-72 bg-green-300 rounded-full blur-3xl opacity-15"></div>
       </div>
       
       <Header />
       
-      <main className="container mx-auto px-4 py-16 relative z-10">
+      <main className="container mx-auto px-6 py-20 relative z-10">
         {/* Hero Section */}
-        <section className="text-center mb-24 max-w-4xl mx-auto">
+        <section className="text-center mb-28 max-w-5xl mx-auto">
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-green-50 border border-green-100 text-green-600 px-4 py-1.5 rounded-full mb-6"
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="inline-flex items-center gap-3 bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 px-5 py-2 rounded-full mb-8 shadow-sm"
           >
-            <IoMdRibbon className="text-green-500" />
-            <span className="text-sm font-medium">Trusted by 10,000+ organizers</span>
+            <IoMdRibbon className="text-green-600" />
+            <span className="text-sm font-semibold tracking-tight">Trusted by 10,000+ organizers</span>
           </motion.div>
           
           <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight"
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 leading-tight tracking-tight"
           >
-            Transform Your <span className="bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">Event Experience</span>
+            Elevate Your <span className="bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">Event Journey</span>
           </motion.h1>
           
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto mb-10"
+            transition={{ delay: 0.3, duration: 0.9, ease: "easeOut" }}
+            className="text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed"
           >
-            The all-in-one platform for creating unforgettable events with powerful tools and analytics.
+            Your all-in-one platform for crafting seamless events with cutting-edge tools and insights.
           </motion.p>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row justify-center gap-5 mb-16">
             <AnimatedButton 
               text="Join as Attendee" 
               href="/attendee" 
               primary 
               icon={<FaTicketAlt className="ml-2" />}
+              className="px-8 py-3 text-lg"
             />
             <AnimatedButton 
               text="Host an Event" 
               href="/host" 
               icon={<BsStars className="ml-2" />}
+              className="px-8 py-3 text-lg"
             />
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            className="relative bg-white p-6 rounded-2xl shadow-lg border border-gray-100 max-w-4xl mx-auto"
-          >
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              New Feature
-            </div>
-            <p className="text-gray-700 font-medium">
-              Try our <span className="text-green-600 font-semibold">AI Event Assistant</span> to generate complete event plans in seconds!
-            </p>
-          </motion.div>
         </section>
 
         {/* Features Section */}
-        <section className="mb-28">
+        <section className="mb-32">
           <motion.div 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need in One Platform</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              From small meetups to large conferences, we've got you covered.
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 tracking-tight">All-in-One Event Solution</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              From intimate gatherings to global conferences, streamline every step.
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
+                transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
                 <FeatureCard 
@@ -156,61 +145,64 @@ function App() {
         </section>
 
         {/* Social Proof */}
-        <section className="mb-28 bg-gradient-to-r from-green-600 to-green-700 rounded-3xl p-10 text-white">
-          <div className="max-w-4xl mx-auto text-center">
+        <section className="mb-32 bg-gradient-to-r from-green-600 to-teal-600 rounded-3xl p-12 text-white shadow-xl">
+          <div className="max-w-5xl mx-auto text-center">
             <motion.div 
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
             >
-              <div className="flex justify-center gap-8 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
                 <div className="text-center">
-                  <div className="text-4xl font-bold">50K+</div>
-                  <div className="text-green-100">Events Created</div>
+                  <div className="text-5xl font-extrabold">50K+</div>
+                  <div className="text-green-100 text-lg">Events Created</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold">2M+</div>
-                  <div className="text-green-100">Attendees</div>
+                  <div className="text-5xl font-extrabold">2M+</div>
+                  <div className="text-green-100 text-lg">Attendees</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold">98%</div>
-                  <div className="text-green-100">Satisfaction</div>
+                  <div className="text-5xl font-extrabold">98%</div>
+                  <div className="text-green-100 text-lg">Satisfaction</div>
                 </div>
               </div>
-              <p className="text-xl text-green-50 mb-8">
-                Join thousands of organizers who trust Ventar for their most important events.
+              <p className="text-xl text-green-50 mb-10 leading-relaxed">
+                Join a thriving community of organizers powering their events with Ventar.
               </p>
               <AnimatedButton 
-                text="See Case Studies" 
+                text="Explore Case Studies" 
                 href="/case-studies" 
                 white 
                 outline
+                className="px-8 py-3 text-lg"
               />
             </motion.div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section className="mb-28">
+        <section className="mb-32">
           <motion.div 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Loved by Organizers & Attendees</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Don't just take our word for it - hear from our community.
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 tracking-tight">Trusted by Our Community</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              See why organizers and attendees love using Ventar.
             </p>
           </motion.div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {testimonials.map((testimonial, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.2, duration: 0.5 }}
+                transition={{ delay: index * 0.2, duration: 0.6, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
                 <Testimonial 
@@ -225,27 +217,28 @@ function App() {
         </section>
 
         {/* CTA Section */}
-        <section className="relative overflow-hidden bg-gray-900 rounded-3xl p-10 text-white">
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-green-400 rounded-full opacity-10 blur-3xl"></div>
-          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-green-600 rounded-full opacity-10 blur-3xl"></div>
+        <section className="relative overflow-hidden bg-gray-900 rounded-3xl p-12 text-white shadow-2xl">
+          <div className="absolute -right-20 -top-20 w-72 h-72 bg-green-500 rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-teal-500 rounded-full opacity-10 blur-3xl"></div>
           
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
             viewport={{ once: true }}
-            className="relative z-10 text-center max-w-3xl mx-auto"
+            className="relative z-10 text-center max-w-4xl mx-auto"
           >
-            <h2 className="text-4xl font-bold mb-6">Ready to Elevate Your Events?</h2>
-            <p className="text-xl text-gray-300 mb-8">
-              Start creating unforgettable experiences today. No credit card required.
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Ready to Transform Your Events?</h2>
+            <p className="text-xl text-gray-200 mb-10 leading-relaxed">
+              Start creating unforgettable experiences today. No credit card needed.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-5">
               <AnimatedButton 
                 text="Get Started Free" 
                 href="/signup" 
                 primary 
                 large
+                className="px-8 py-3 text-lg"
               />
               <AnimatedButton 
                 text="Schedule Demo" 
@@ -253,48 +246,49 @@ function App() {
                 white 
                 outline
                 large
+                className="px-8 py-3 text-lg"
               />
             </div>
           </motion.div>
         </section>
       </main>
 
-      <footer className="bg-gray-900 text-gray-300 py-12 relative z-10">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <footer className="bg-gray-900 text-gray-300 py-16 relative z-10">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
             <div>
-              <h3 className="text-white text-lg font-semibold mb-4">Ventar</h3>
-              <p className="mb-4">The complete event management platform for modern organizers.</p>
-              <div className="flex gap-4">
+              <h3 className="text-white text-xl font-semibold mb-5">Ventar</h3>
+              <p className="mb-6 text-gray-400 leading-relaxed">The ultimate platform for modern event management.</p>
+              <div className="flex gap-5">
                 {/* Social icons would go here */}
               </div>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-4">Product</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition">Features</a></li>
-                <li><a href="#" className="hover:text-white transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition">Integrations</a></li>
+              <h4 className="text-white font-medium mb-5 text-lg">Product</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition duration-300">Features</a></li>
+                <li><a href="#" className="hover:text-white transition duration-300">Pricing</a></li>
+                <li><a href="#" className="hover:text-white transition duration-300">Integrations</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-4">Resources</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Guides</a></li>
-                <li><a href="#" className="hover:text-white transition">Webinars</a></li>
+              <h4 className="text-white font-medium mb-5 text-lg">Resources</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition duration-300">Blog</a></li>
+                <li><a href="#" className="hover:text-white transition duration-300">Guides</a></li>
+                <li><a href="#" className="hover:text-white transition duration-300">Webinars</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-medium mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition">About</a></li>
-                <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+              <h4 className="text-white font-medium mb-5 text-lg">Company</h4>
+              <ul className="space-y-3 text-gray-400">
+                <li><a href="#" className="hover:text-white transition duration-300">About</a></li>
+                <li><a href="#" className="hover:text-white transition duration-300">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition duration-300">Contact</a></li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-gray-800 text-center text-sm">
+          <div className="pt-10 border-t border-gray-800 text-center text-sm text-gray-400">
             <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
           </div>
         </div>
