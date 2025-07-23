@@ -1,0 +1,1 @@
+# Ventar initgit add README.mdgit commit -m first commitgit branch -M maingit remote add origin https://github.com/Emmanuel-Olusegun1/Ventar.gitgit push -u origin main
