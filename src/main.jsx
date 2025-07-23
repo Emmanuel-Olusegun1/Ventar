@@ -5,7 +5,8 @@ import './index.css'
 
 // Import your components
 import App from './App'
-import HostSignUp from './HostSignUp' // Assuming you have this component
+import HostSignUp from './HostSignUp'
+import HostSignIn from './HostSignIn'
 
 // Create the router configuration
 const router = createBrowserRouter([
