@@ -51,7 +51,7 @@ function App() {
           className="flex flex-col sm:flex-row justify-center gap-4"
         >
           <a 
-            href="/join" 
+            href="#join" 
             className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
             Join an Event <BsArrowRight />
@@ -139,7 +139,7 @@ function App() {
       </section>
 
       {/* Join Event Section */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-20" id='join'>
         <div className="container mx-auto px-6 max-w-3xl">
           <motion.div 
             initial={{ opacity: 0 }}
