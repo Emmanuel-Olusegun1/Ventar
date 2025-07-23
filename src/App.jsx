@@ -18,7 +18,7 @@ function App() {
         <div className="hidden md:flex gap-6">
           <a href="/host-signup" className="text-gray-700 hover:text-green-600 font-medium">Host Sign-Up</a>
           <a href="/host-login" className="text-gray-700 hover:text-green-600 font-medium">Host Login</a>
-          <a href="/join" className="text-gray-700 hover:text-green-600 font-medium">Join Event</a>
+          <a href="#join" className="text-gray-700 hover:text-green-600 font-medium">Join Event</a>
         </div>
         <button className="md:hidden text-gray-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +280,7 @@ function App() {
               <ul className="space-y-2">
                 <li><a href="/host-signup" className="hover:text-white transition">Host Sign-Up</a></li>
                 <li><a href="/host-login" className="hover:text-white transition">Host Login</a></li>
-                <li><a href="/join" className="hover:text-white transition">Join Event</a></li>
+                <li><a href="#join" className="hover:text-white transition">Join Event</a></li>
               </ul>
             </div>
             <div>
@@ -302,6 +302,10 @@ function App() {
           </div>
           <div className="pt-8 border-t border-gray-800 text-center">
             <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
+          </div>
+
+          <div className="pt-8 border-t border-gray-800 text-center">
+            <p> Powered By <a href="algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
           </div>
         </div>
       </footer>

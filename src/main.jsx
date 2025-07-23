@@ -17,7 +17,10 @@ const router = createBrowserRouter([
     path: '/host-signup',
     element: <HostSignUp />,
   },
-  // Add more routes as needed
+  {
+    path: '/host-signin',
+    element: <HostSignIn />,
+  },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
