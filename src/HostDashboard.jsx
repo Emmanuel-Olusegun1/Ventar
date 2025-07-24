@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaCalendarAlt, 
@@ -11,12 +11,16 @@ import {
   FaEllipsisV,
   FaRegCheckCircle,
   FaUserPlus,
-  FaQrcode
+  FaQrcode,
+  FaSignOutAlt
 } from 'react-icons/fa';
 import { BsLightningFill, BsThreeDotsVertical } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
 
 function HostDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('events');
+  const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState([
     { id: 1, message: '15 new registrations for Tech Conference', time: '2 mins ago', read: false, icon: <FaUserPlus className="text-green-500"/> },
     { id: 2, message: 'Your workshop reached 80% capacity', time: '1 hour ago', read: true, icon: <FaChartPie className="text-blue-500"/> },
@@ -30,10 +34,67 @@ function HostDashboard() {
     { id: 4, name: 'Developer Meetup', date: 'Sep 20, 2023', registrations: 156, capacity: 200, status: 'completed' }
   ]);
 
+  const [filteredEvents, setFilteredEvents] = useState(events);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // Filter events based on search query
+  useEffect(() => {
+    const filtered = events.filter(event =>
+      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.status.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredEvents(filtered);
+  }, [searchQuery, events]);
+
   const toggleNotificationRead = (id) => {
     setNotifications(notifications.map(n => 
       n.id === id ? {...n, read: !n.read} : n
     ));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({...n, read: true})));
+  };
+
+  const handleLogout = () => {
+    // In a real app, you would also clear authentication tokens
+    navigate('/');
+  };
+
+  const handleEventAction = (eventId, action) => {
+    switch(action) {
+      case 'manage':
+        navigate(`/events/${eventId}/manage`);
+        break;
+      case 'checkin':
+        navigate(`/events/${eventId}/checkin`);
+        break;
+      case 'insights':
+        navigate(`/events/${eventId}/analytics`);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleQuickAction = (action) => {
+    switch(action) {
+      case 'new-event':
+        navigate('/events/new');
+        break;
+      case 'invite-team':
+        navigate('/team/invite');
+        break;
+      case 'checkin-app':
+        navigate('/checkin');
+        break;
+      case 'reports':
+        navigate('/reports');
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -45,7 +106,8 @@ function HostDashboard() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent mr-10"
+              className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent mr-10 cursor-pointer"
+              onClick={() => navigate('/dashboard')}
             >
               Ventar
             </motion.div>
@@ -71,18 +133,115 @@ function HostDashboard() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <button className="p-2 rounded-full hover:bg-gray-100 relative">
-              <FaBell className="h-5 w-5 text-gray-600" />
-              {notifications.some(n => !n.read) && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-              )}
-            </button>
+            <div className="relative">
+              <button 
+                className="p-2 rounded-full hover:bg-gray-100 relative"
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                <FaBell className="h-5 w-5 text-gray-600" />
+                {notifications.some(n => !n.read) && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                )}
+              </button>
+              
+              <AnimatePresence>
+                {showDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                  >
+                    <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                      <h3 className="font-medium">Notifications</h3>
+                      <button 
+                        onClick={markAllAsRead}
+                        className="text-sm text-green-600 hover:text-green-700"
+                      >
+                        Mark all as read
+                      </button>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.map(notification => (
+                        <div 
+                          key={notification.id} 
+                          className={`p-4 ${notification.read ? 'bg-white' : 'bg-green-50/50'} hover:bg-gray-50 cursor-pointer`}
+                          onClick={() => toggleNotificationRead(notification.id)}
+                        >
+                          <div className="flex items-start">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center ${notification.read ? 'bg-gray-100' : 'bg-green-100'}`}>
+                                {notification.icon}
+                              </div>
+                            </div>
+                            <div className="ml-3 flex-1">
+                              <p className="text-sm font-medium text-gray-900">{notification.message}</p>
+                              <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                            </div>
+                            {!notification.read && (
+                              <div className="ml-3 flex-shrink-0">
+                                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-3 border-t border-gray-200 text-center">
+                      <button 
+                        className="text-sm font-medium text-green-600 hover:text-green-700"
+                        onClick={() => navigate('/notifications')}
+                      >
+                        View all notifications
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-medium">
-                AJ
-              </div>
-              <span className="text-sm font-medium text-gray-700 hidden md:inline">Alex Johnson</span>
+            <div className="relative">
+              <button 
+                className="flex items-center space-x-2 focus:outline-none"
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-medium">
+                  AJ
+                </div>
+                <span className="text-sm font-medium text-gray-700 hidden md:inline">Alex Johnson</span>
+              </button>
+              
+              <AnimatePresence>
+                {showDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                  >
+                    <div className="py-1">
+                      <button 
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => navigate('/profile')}
+                      >
+                        Your Profile
+                      </button>
+                      <button 
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => navigate('/settings')}
+                      >
+                        Settings
+                      </button>
+                      <button 
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        onClick={handleLogout}
+                      >
+                        <FaSignOutAlt className="mr-2" /> Sign out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -100,6 +259,7 @@ function HostDashboard() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             className="mt-4 md:mt-0 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center shadow-sm shadow-green-100"
+            onClick={() => navigate('/events/new')}
           >
             <FaPlus className="mr-2" />
             New Event
@@ -113,25 +273,33 @@ function HostDashboard() {
               icon: <FaCalendarAlt className="h-5 w-5" />,
               title: "Total Events",
               value: events.length,
-              color: "bg-gradient-to-r from-green-100 to-green-50 text-green-600"
+              color: "bg-gradient-to-r from-green-100 to-green-50 text-green-600",
+              onClick: () => setActiveTab('events')
             },
             { 
               icon: <FaUsers className="h-5 w-5" />,
               title: "Total Attendees",
               value: events.reduce((sum, event) => sum + event.registrations, 0),
-              color: "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-600"
+              color: "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-600",
+              onClick: () => setActiveTab('attendees')
             },
             { 
               icon: <FaRegCheckCircle className="h-5 w-5" />,
               title: "Active Events",
               value: events.filter(e => e.status === 'active').length,
-              color: "bg-gradient-to-r from-purple-100 to-purple-50 text-purple-600"
+              color: "bg-gradient-to-r from-purple-100 to-purple-50 text-purple-600",
+              onClick: () => {
+                setActiveTab('events');
+                setSearchQuery('active');
+              }
             }
           ].map((stat, index) => (
             <motion.div
               key={index}
               whileHover={{ y: -5 }}
-              className={`p-5 rounded-2xl border border-gray-100 shadow-xs hover:shadow-sm transition-all ${stat.color}`}
+              whileTap={{ scale: 0.98 }}
+              className={`p-5 rounded-2xl border border-gray-100 shadow-xs hover:shadow-sm transition-all ${stat.color} cursor-pointer`}
+              onClick={stat.onClick}
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -158,78 +326,111 @@ function HostDashboard() {
                 type="text"
                 placeholder="Search events..."
                 className="pl-10 w-full pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <button 
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {events.map((event) => (
-              <motion.div
-                key={event.id}
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-sm transition-all"
+          {filteredEvents.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
+              <p className="text-gray-500 mb-4">No events found matching your search</p>
+              <button 
+                className="text-green-600 hover:text-green-700 font-medium"
+                onClick={() => setSearchQuery('')}
               >
-                <div className="p-5">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center">
-                      <div className="p-2.5 rounded-lg bg-green-100 text-green-600 mr-3">
-                        <FaCalendarAlt className="h-5 w-5" />
+                Clear search
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredEvents.map((event) => (
+                <motion.div
+                  key={event.id}
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-sm transition-all"
+                >
+                  <div className="p-5">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center">
+                        <div className="p-2.5 rounded-lg bg-green-100 text-green-600 mr-3">
+                          <FaCalendarAlt className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{event.name}</h3>
+                          <p className="text-sm text-gray-500">#{event.id}</p>
+                        </div>
                       </div>
+                      <button className="text-gray-400 hover:text-gray-600">
+                        <BsThreeDotsVertical />
+                      </button>
+                    </div>
+                    
+                    <div className="mt-4 flex justify-between items-center">
                       <div>
-                        <h3 className="font-semibold text-gray-900">{event.name}</h3>
-                        <p className="text-sm text-gray-500">#{event.id}</p>
+                        <p className="text-sm text-gray-500">Date</p>
+                        <p className="font-medium text-gray-900">{event.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Registrations</p>
+                        <p className="font-medium text-gray-900">{event.registrations}/{event.capacity}</p>
                       </div>
                     </div>
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <BsThreeDotsVertical />
+                    
+                    <div className="mt-4">
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div 
+                          className="bg-green-500 h-2 rounded-full" 
+                          style={{ width: `${Math.min(100, (event.registrations / event.capacity) * 100)}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-xs text-gray-500">{Math.round((event.registrations / event.capacity) * 100)}% full</span>
+                        <span className={`text-xs font-medium ${
+                          event.status === 'active' ? 'text-green-600' :
+                          event.status === 'upcoming' ? 'text-blue-600' :
+                          'text-gray-500'
+                        }`}>
+                          {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-gray-100 px-5 py-3 bg-gray-50 flex justify-between">
+                    <button 
+                      className="text-sm font-medium text-green-600 hover:text-green-700 flex items-center"
+                      onClick={() => handleEventAction(event.id, 'manage')}
+                    >
+                      <FaUsers className="mr-1.5" /> Manage
+                    </button>
+                    <button 
+                      className="text-sm font-medium text-gray-600 hover:text-gray-700 flex items-center"
+                      onClick={() => handleEventAction(event.id, 'checkin')}
+                    >
+                      <FaQrcode className="mr-1.5" /> Check-in
+                    </button>
+                    <button 
+                      className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center"
+                      onClick={() => handleEventAction(event.id, 'insights')}
+                    >
+                      <FaChartPie className="mr-1.5" /> Insights
                     </button>
                   </div>
-                  
-                  <div className="mt-4 flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-gray-500">Date</p>
-                      <p className="font-medium text-gray-900">{event.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Registrations</p>
-                      <p className="font-medium text-gray-900">{event.registrations}/{event.capacity}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full" 
-                        style={{ width: `${Math.min(100, (event.registrations / event.capacity) * 100)}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-xs text-gray-500">{Math.round((event.registrations / event.capacity) * 100)}% full</span>
-                      <span className={`text-xs font-medium ${
-                        event.status === 'active' ? 'text-green-600' :
-                        event.status === 'upcoming' ? 'text-blue-600' :
-                        'text-gray-500'
-                      }`}>
-                        {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="border-t border-gray-100 px-5 py-3 bg-gray-50 flex justify-between">
-                  <button className="text-sm font-medium text-green-600 hover:text-green-700 flex items-center">
-                    <FaUsers className="mr-1.5" /> Manage
-                  </button>
-                  <button className="text-sm font-medium text-gray-600 hover:text-gray-700 flex items-center">
-                    <FaQrcode className="mr-1.5" /> Check-in
-                  </button>
-                  <button className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center">
-                    <FaChartPie className="mr-1.5" /> Insights
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Bottom Dashboard Sections */}
@@ -241,13 +442,13 @@ function HostDashboard() {
             </div>
             <div className="divide-y divide-gray-100">
               <AnimatePresence>
-                {notifications.map(notification => (
+                {notifications.slice(0, 4).map(notification => (
                   <motion.div
                     key={notification.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className={`p-4 ${notification.read ? 'bg-white' : 'bg-green-50/50'}`}
+                    className={`p-4 ${notification.read ? 'bg-white' : 'bg-green-50/50'} hover:bg-gray-50 cursor-pointer`}
                     onClick={() => toggleNotificationRead(notification.id)}
                   >
                     <div className="flex items-start">
@@ -271,7 +472,10 @@ function HostDashboard() {
               </AnimatePresence>
             </div>
             <div className="p-4 border-t border-gray-100 text-center">
-              <button className="text-sm font-medium text-green-600 hover:text-green-700">
+              <button 
+                className="text-sm font-medium text-green-600 hover:text-green-700"
+                onClick={() => navigate('/notifications')}
+              >
                 View all activity
               </button>
             </div>
@@ -284,16 +488,17 @@ function HostDashboard() {
             </div>
             <div className="grid grid-cols-2 gap-4 p-5">
               {[
-                { icon: <FaPlus className="h-5 w-5" />, label: "New Event", color: "bg-green-100 text-green-600" },
-                { icon: <FaUserPlus className="h-5 w-5" />, label: "Invite Team", color: "bg-blue-100 text-blue-600" },
-                { icon: <FaQrcode className="h-5 w-5" />, label: "Check-in App", color: "bg-purple-100 text-purple-600" },
-                { icon: <FaChartPie className="h-5 w-5" />, label: "Reports", color: "bg-yellow-100 text-yellow-600" }
+                { icon: <FaPlus className="h-5 w-5" />, label: "New Event", color: "bg-green-100 text-green-600", action: "new-event" },
+                { icon: <FaUserPlus className="h-5 w-5" />, label: "Invite Team", color: "bg-blue-100 text-blue-600", action: "invite-team" },
+                { icon: <FaQrcode className="h-5 w-5" />, label: "Check-in App", color: "bg-purple-100 text-purple-600", action: "checkin-app" },
+                { icon: <FaChartPie className="h-5 w-5" />, label: "Reports", color: "bg-yellow-100 text-yellow-600", action: "reports" }
               ].map((action, index) => (
                 <motion.button
                   key={index}
                   whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`p-4 rounded-xl border border-gray-100 flex flex-col items-center hover:shadow-xs transition-all ${action.color}`}
+                  className={`p-4 rounded-xl border border-gray-100 flex flex-col items-center hover:shadow-xs transition-all ${action.color} cursor-pointer`}
+                  onClick={() => handleQuickAction(action.action)}
                 >
                   <div className="p-3 rounded-lg bg-white/50 backdrop-blur-sm mb-2">
                     {action.icon}
@@ -312,17 +517,49 @@ function HostDashboard() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-6 mb-4 md:mb-0">
               <p className="text-sm text-gray-500">© {new Date().getFullYear()} Ventar</p>
-              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Privacy</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Terms</a>
+              <a 
+                href="#" 
+                className="text-sm text-gray-500 hover:text-gray-700"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/privacy');
+                }}
+              >
+                Privacy
+              </a>
+              <a 
+                href="#" 
+                className="text-sm text-gray-500 hover:text-gray-700"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/terms');
+                }}
+              >
+                Terms
+              </a>
             </div>
             <div className="flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-gray-600">
+              <a 
+                href="#" 
+                className="text-gray-400 hover:text-gray-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.open('https://twitter.com/ventar', '_blank');
+                }}
+              >
                 <span className="sr-only">Twitter</span>
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                 </svg>
               </a>
-              <a href="#" className="text-gray-400 hover:text-gray-600">
+              <a 
+                href="#" 
+                className="text-gray-400 hover:text-gray-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.open('https://github.com/ventar', '_blank');
+                }}
+              >
                 <span className="sr-only">GitHub</span>
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
