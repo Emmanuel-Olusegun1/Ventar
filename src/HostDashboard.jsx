@@ -4,12 +4,12 @@ import {
   FaCalendarAlt, 
   FaUsers, 
   FaChartLine, 
-  FaTicketAlt, 
   FaBell, 
   FaCog,
   FaSearch,
   FaPlus,
-  FaEllipsisV
+  FaEllipsisV,
+  FaRegCheckCircle
 } from 'react-icons/fa';
 import { BsLightningFill } from 'react-icons/bs';
 
@@ -17,14 +17,14 @@ function HostDashboard() {
   const [activeTab, setActiveTab] = useState('events');
   const [notifications, setNotifications] = useState([
     { id: 1, message: 'New registration for Tech Conference', time: '2 mins ago', read: false },
-    { id: 2, message: 'Payment received for Workshop', time: '1 hour ago', read: true },
-    { id: 3, message: 'Event reminder: Music Festival starts tomorrow', time: '3 hours ago', read: true }
+    { id: 2, message: '15 people registered for Workshop', time: '1 hour ago', read: true },
+    { id: 3, message: 'Event reminder: Community Meetup starts tomorrow', time: '3 hours ago', read: true }
   ]);
 
   const [events, setEvents] = useState([
     { id: 1, name: 'Tech Conference 2023', date: 'Oct 15, 2023', registrations: 245, status: 'active' },
-    { id: 2, name: 'Marketing Workshop', date: 'Nov 5, 2023', registrations: 89, status: 'active' },
-    { id: 3, name: 'Music Festival', date: 'Dec 10, 2023', registrations: 512, status: 'upcoming' },
+    { id: 2, name: 'Community Workshop', date: 'Nov 5, 2023', registrations: 89, status: 'active' },
+    { id: 3, name: 'Networking Mixer', date: 'Dec 10, 2023', registrations: 112, status: 'upcoming' },
     { id: 4, name: 'Developer Meetup', date: 'Sep 20, 2023', registrations: 156, status: 'completed' }
   ]);
 
@@ -55,16 +55,16 @@ function HostDashboard() {
                 My Events
               </button>
               <button 
-                onClick={() => setActiveTab('analytics')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'analytics' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-              >
-                Analytics
-              </button>
-              <button 
                 onClick={() => setActiveTab('attendees')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'attendees' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
               >
                 Attendees
+              </button>
+              <button 
+                onClick={() => setActiveTab('analytics')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'analytics' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+              >
+                Insights
               </button>
             </div>
           </div>
@@ -84,7 +84,7 @@ function HostDashboard() {
                 src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
                 alt="User profile" 
               />
-              <span className="ml-2 text-sm font-medium text-gray-700 hidden md:inline">John Doe</span>
+              <span className="ml-2 text-sm font-medium text-gray-700 hidden md:inline">Alex Johnson</span>
             </div>
           </div>
         </div>
@@ -95,17 +95,20 @@ function HostDashboard() {
         {/* Dashboard Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Host Dashboard</h1>
-            <p className="text-gray-600">Welcome back! Here's what's happening with your events.</p>
+            <h1 className="text-2xl font-bold text-gray-900">Event Management Dashboard</h1>
+            <p className="text-gray-600">Manage your free events and track participation</p>
           </div>
-          <button className="mt-4 md:mt-0 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium flex items-center">
+          <motion.button 
+            whileHover={{ scale: 1.03 }}
+            className="mt-4 md:mt-0 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium flex items-center"
+          >
             <FaPlus className="mr-2" />
             Create New Event
-          </button>
+          </motion.button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div 
             whileHover={{ y: -5 }}
             className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
@@ -116,7 +119,7 @@ function HostDashboard() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Events</p>
-                <p className="text-2xl font-semibold text-gray-900">12</p>
+                <p className="text-2xl font-semibold text-gray-900">{events.length}</p>
               </div>
             </div>
           </motion.div>
@@ -131,7 +134,9 @@ function HostDashboard() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Attendees</p>
-                <p className="text-2xl font-semibold text-gray-900">1,024</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {events.reduce((sum, event) => sum + event.registrations, 0)}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -142,26 +147,13 @@ function HostDashboard() {
           >
             <div className="flex items-center">
               <div className="p-3 rounded-lg bg-purple-100 text-purple-600 mr-4">
-                <FaTicketAlt className="h-6 w-6" />
+                <FaRegCheckCircle className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Tickets Sold</p>
-                <p className="text-2xl font-semibold text-gray-900">856</p>
-              </div>
-            </div>
-          </motion.div>
-          
-          <motion.div 
-            whileHover={{ y: -5 }}
-            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
-          >
-            <div className="flex items-center">
-              <div className="p-3 rounded-lg bg-yellow-100 text-yellow-600 mr-4">
-                <FaChartLine className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                <p className="text-2xl font-semibold text-gray-900">$24,580</p>
+                <p className="text-sm font-medium text-gray-500">Active Events</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {events.filter(e => e.status === 'active').length}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -233,7 +225,7 @@ function HostDashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button className="text-green-600 hover:text-green-900 mr-4">View</button>
+                      <button className="text-green-600 hover:text-green-900 mr-4">Manage</button>
                       <button className="text-gray-600 hover:text-gray-900">
                         <FaEllipsisV />
                       </button>
@@ -246,7 +238,7 @@ function HostDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upcoming Events */}
           <div className="bg-white shadow-sm rounded-lg border border-gray-200">
             <div className="p-4 border-b border-gray-200">
@@ -254,16 +246,20 @@ function HostDashboard() {
             </div>
             <div className="p-4">
               {events.filter(e => e.status === 'upcoming').map(event => (
-                <div key={event.id} className="mb-4 last:mb-0">
+                <motion.div 
+                  key={event.id} 
+                  whileHover={{ x: 5 }}
+                  className="mb-4 last:mb-0 p-3 hover:bg-gray-50 rounded-lg"
+                >
                   <div className="flex justify-between">
                     <h3 className="font-medium text-gray-900">{event.name}</h3>
                     <span className="text-sm text-gray-500">{event.date}</span>
                   </div>
                   <div className="mt-1 flex items-center">
-                    <span className="text-sm text-gray-500">{event.registrations} registrations</span>
-                    <button className="ml-auto text-sm text-green-600 hover:text-green-800">Manage</button>
+                    <span className="text-sm text-gray-500">{event.registrations} registered</span>
+                    <button className="ml-auto text-sm text-green-600 hover:text-green-800">Details</button>
                   </div>
-                </div>
+                </motion.div>
               ))}
               {events.filter(e => e.status === 'upcoming').length === 0 && (
                 <p className="text-gray-500 text-center py-4">No upcoming events</p>
@@ -275,14 +271,15 @@ function HostDashboard() {
           <div className="bg-white shadow-sm rounded-lg border border-gray-200">
             <div className="p-4 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h2 className="font-semibold text-lg text-gray-800">Notifications</h2>
-                <button className="text-sm text-green-600 hover:text-green-800">Mark all as read</button>
+                <h2 className="font-semibold text-lg text-gray-800">Recent Activity</h2>
+                <button className="text-sm text-green-600 hover:text-green-800">View All</button>
               </div>
             </div>
             <div className="p-4">
               {notifications.map(notification => (
-                <div 
+                <motion.div 
                   key={notification.id} 
+                  whileHover={{ x: 5 }}
                   className={`mb-4 last:mb-0 p-3 rounded-lg ${notification.read ? 'bg-white' : 'bg-green-50'}`}
                   onClick={() => toggleNotificationRead(notification.id)}
                 >
@@ -293,59 +290,8 @@ function HostDashboard() {
                       <p className="text-xs text-gray-500">{notification.time}</p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-              {notifications.length === 0 && (
-                <p className="text-gray-500 text-center py-4">No new notifications</p>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="font-semibold text-lg text-gray-800">Quick Actions</h2>
-            </div>
-            <div className="p-4 grid grid-cols-2 gap-4">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                className="p-4 border border-gray-200 rounded-lg flex flex-col items-center hover:bg-green-50"
-              >
-                <div className="p-3 rounded-full bg-green-100 text-green-600 mb-2">
-                  <FaPlus className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">New Event</span>
-              </motion.button>
-              
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                className="p-4 border border-gray-200 rounded-lg flex flex-col items-center hover:bg-blue-50"
-              >
-                <div className="p-3 rounded-full bg-blue-100 text-blue-600 mb-2">
-                  <FaTicketAlt className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Create Ticket</span>
-              </motion.button>
-              
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                className="p-4 border border-gray-200 rounded-lg flex flex-col items-center hover:bg-purple-50"
-              >
-                <div className="p-3 rounded-full bg-purple-100 text-purple-600 mb-2">
-                  <FaUsers className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Manage Attendees</span>
-              </motion.button>
-              
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                className="p-4 border border-gray-200 rounded-lg flex flex-col items-center hover:bg-yellow-50"
-              >
-                <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 mb-2">
-                  <FaCog className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-medium text-gray-700">Settings</span>
-              </motion.button>
             </div>
           </div>
         </div>
@@ -359,7 +305,7 @@ function HostDashboard() {
             <div className="flex space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Privacy</a>
               <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Terms</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Help</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-gray-700">Help Center</a>
             </div>
           </div>
         </div>
