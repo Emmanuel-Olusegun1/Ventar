@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fa';
 import { BsLightningFill, BsThreeDotsVertical } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient'; // Import your Supabase client
 
 function HostDashboard() {
   const navigate = useNavigate();
@@ -27,15 +28,45 @@ function HostDashboard() {
     { id: 3, message: 'Community Mixer starts tomorrow', time: '3 hours ago', read: true, icon: <FaCalendarAlt className="text-purple-500"/> }
   ]);
 
-  const [events, setEvents] = useState([
-    { id: 1, name: 'Tech Conference 2023', date: 'Oct 15, 2023', registrations: 245, capacity: 300, status: 'active' },
-    { id: 2, name: 'Community Workshop', date: 'Nov 5, 2023', registrations: 89, capacity: 100, status: 'active' },
-    { id: 3, name: 'Networking Mixer', date: 'Dec 10, 2023', registrations: 112, capacity: 150, status: 'upcoming' },
-    { id: 4, name: 'Developer Meetup', date: 'Sep 20, 2023', registrations: 156, capacity: 200, status: 'completed' }
-  ]);
-
-  const [filteredEvents, setFilteredEvents] = useState(events);
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // Fetch events from Supabase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Format the date for display
+        const formattedEvents = data.map(event => ({
+          ...event,
+          date: new Date(event.date).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+          })
+        }));
+
+        setEvents(formattedEvents);
+        setFilteredEvents(formattedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        alert('Error loading events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   // Filter events based on search query
   useEffect(() => {
@@ -57,9 +88,14 @@ function HostDashboard() {
     setNotifications(notifications.map(n => ({...n, read: true})));
   };
 
-  const handleLogout = () => {
-    // In a real app, you would also clear authentication tokens
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const handleEventAction = (eventId, action) => {
@@ -96,6 +132,20 @@ function HostDashboard() {
         break;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <svg className="animate-spin h-12 w-12 text-green-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="mt-4 text-gray-600">Loading events...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -279,7 +329,7 @@ function HostDashboard() {
             { 
               icon: <FaUsers className="h-5 w-5" />,
               title: "Total Attendees",
-              value: events.reduce((sum, event) => sum + event.registrations, 0),
+              value: events.reduce((sum, event) => sum + (event.registrations || 0), 0),
               color: "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-600",
               onClick: () => setActiveTab('attendees')
             },
@@ -344,13 +394,28 @@ function HostDashboard() {
           
           {filteredEvents.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-              <p className="text-gray-500 mb-4">No events found matching your search</p>
-              <button 
-                className="text-green-600 hover:text-green-700 font-medium"
-                onClick={() => setSearchQuery('')}
-              >
-                Clear search
-              </button>
+              <p className="text-gray-500 mb-4">
+                {searchQuery ? "No events found matching your search" : "You don't have any events yet"}
+              </p>
+              {!searchQuery && (
+                <motion.button 
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center shadow-sm shadow-green-100 mx-auto"
+                  onClick={() => navigate('/events/new')}
+                >
+                  <FaPlus className="mr-2" />
+                  Create Your First Event
+                </motion.button>
+              )}
+              {searchQuery && (
+                <button 
+                  className="text-green-600 hover:text-green-700 font-medium"
+                  onClick={() => setSearchQuery('')}
+                >
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -383,7 +448,7 @@ function HostDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-500">Registrations</p>
-                        <p className="font-medium text-gray-900">{event.registrations}/{event.capacity}</p>
+                        <p className="font-medium text-gray-900">{event.registrations || 0}/{event.capacity || 0}</p>
                       </div>
                     </div>
                     
@@ -391,17 +456,19 @@ function HostDashboard() {
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div 
                           className="bg-green-500 h-2 rounded-full" 
-                          style={{ width: `${Math.min(100, (event.registrations / event.capacity) * 100)}%` }}
+                          style={{ width: `${Math.min(100, ((event.registrations || 0) / (event.capacity || 1)) * 100)}%` }}
                         ></div>
                       </div>
                       <div className="flex justify-between mt-1">
-                        <span className="text-xs text-gray-500">{Math.round((event.registrations / event.capacity) * 100)}% full</span>
+                        <span className="text-xs text-gray-500">
+                          {Math.round(((event.registrations || 0) / (event.capacity || 1) * 100)}% full
+                        </span>
                         <span className={`text-xs font-medium ${
                           event.status === 'active' ? 'text-green-600' :
                           event.status === 'upcoming' ? 'text-blue-600' :
                           'text-gray-500'
                         }`}>
-                          {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                          {event.status?.charAt(0)?.toUpperCase() + event.status?.slice(1)}
                         </span>
                       </div>
                     </div>
