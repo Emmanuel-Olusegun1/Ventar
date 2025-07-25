@@ -365,12 +365,12 @@ function CreateEvent() {
                                   <div 
                                     className="bg-green-500 h-2 rounded-full" 
                                     style={{ 
-                                      width: `${Math.min(100, ((eventData.registrations || 0) / (eventData.capacity || 1) * 100)}%` 
+                                      width: `${Math.min(100, ((eventData.registrations || 0) / (eventData.capacity || 1)) * 100)}%` 
                                     }}
                                   ></div>
                                 </div>
                                 <span className="text-sm text-gray-500">
-                                  {Math.round(((eventData.registrations || 0) / (eventData.capacity || 1) * 100)}%
+                                  {Math.round(((eventData.registrations || 0) / (eventData.capacity || 1)) * 100)}%
                                 </span>
                               </div>
                             </div>
