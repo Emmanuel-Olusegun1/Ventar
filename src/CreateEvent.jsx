@@ -19,7 +19,6 @@ function CreateEvent() {
     workshopNumber: '',
     date: '',
     capacity: 100,
-    registrations: 0,
     status: 'upcoming'
   });
   const [errors, setErrors] = useState({});
@@ -43,8 +42,6 @@ function CreateEvent() {
     if (!eventData.name.trim()) newErrors.name = 'Event name is required';
     if (!eventData.date) newErrors.date = 'Date is required';
     if (!eventData.capacity || eventData.capacity <= 0) newErrors.capacity = 'Capacity must be positive';
-    if (eventData.registrations < 0) newErrors.registrations = 'Registrations cannot be negative';
-    if (eventData.registrations > eventData.capacity) newErrors.registrations = 'Registrations cannot exceed capacity';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -64,7 +61,7 @@ function CreateEvent() {
           name: `${eventData.name} ${eventData.workshopNumber ? `#${eventData.workshopNumber}` : ''}`.trim(),
           date: eventData.date,
           capacity: Number(eventData.capacity),
-          registrations: Number(eventData.registrations),
+          registrations: 0, // Start with 0 registrations
           status: eventData.status,
           created_at: new Date().toISOString()
         }])
@@ -73,7 +70,7 @@ function CreateEvent() {
       if (error) throw error;
       if (!data || data.length === 0) throw new Error('No data returned from server');
 
-      navigate(`/events/${data[0].id}/manage`);
+      navigate('/host-dashboard'); // Redirect to host dashboard
     } catch (error) {
       console.error('Error creating event:', error);
       setSubmitError(error.message || 'Failed to create event. Please try again.');
@@ -254,49 +251,25 @@ function CreateEvent() {
                             {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">
-                                Total Capacity <span className="text-red-500">*</span>
-                              </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                  <FaUsers className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                  type="number"
-                                  id="capacity"
-                                  name="capacity"
-                                  min="1"
-                                  value={eventData.capacity}
-                                  onChange={handleInputChange}
-                                  className={`pl-10 w-full px-4 py-2.5 border ${errors.capacity ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                                />
+                          <div>
+                            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">
+                              Total Capacity <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaUsers className="h-5 w-5 text-gray-400" />
                               </div>
-                              {errors.capacity && <p className="mt-1 text-sm text-red-500">{errors.capacity}</p>}
+                              <input
+                                type="number"
+                                id="capacity"
+                                name="capacity"
+                                min="1"
+                                value={eventData.capacity}
+                                onChange={handleInputChange}
+                                className={`pl-10 w-full px-4 py-2.5 border ${errors.capacity ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                              />
                             </div>
-
-                            <div>
-                              <label htmlFor="registrations" className="block text-sm font-medium text-gray-700 mb-1">
-                                Current Registrations
-                              </label>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                  <FaChartPie className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                  type="number"
-                                  id="registrations"
-                                  name="registrations"
-                                  min="0"
-                                  max={eventData.capacity}
-                                  value={eventData.registrations}
-                                  onChange={handleInputChange}
-                                  className={`pl-10 w-full px-4 py-2.5 border ${errors.registrations ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                                />
-                              </div>
-                              {errors.registrations && <p className="mt-1 text-sm text-red-500">{errors.registrations}</p>}
-                            </div>
+                            {errors.capacity && <p className="mt-1 text-sm text-red-500">{errors.capacity}</p>}
                           </div>
 
                           <div>
@@ -359,19 +332,15 @@ function CreateEvent() {
                               <p className="text-sm font-medium text-gray-500">Registrations</p>
                               <div className="flex items-center space-x-4">
                                 <p className="text-md text-gray-900">
-                                  {eventData.registrations}/{eventData.capacity}
+                                  0/{eventData.capacity}
                                 </p>
                                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                                   <div 
                                     className="bg-green-500 h-2 rounded-full" 
-                                    style={{ 
-                                      width: `${Math.min(100, ((eventData.registrations || 0) / (eventData.capacity || 1)) * 100)}%` 
-                                    }}
+                                    style={{ width: '0%' }}
                                   ></div>
                                 </div>
-                                <span className="text-sm text-gray-500">
-                                  {Math.round(((eventData.registrations || 0) / (eventData.capacity || 1)) * 100)}%
-                                </span>
+                                <span className="text-sm text-gray-500">0%</span>
                               </div>
                             </div>
                             
