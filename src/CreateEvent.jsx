@@ -16,6 +16,7 @@ function CreateEvent() {
     status: 'upcoming'
   });
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,6 +24,10 @@ function CreateEvent() {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
   const validateForm = () => {
@@ -31,6 +36,8 @@ function CreateEvent() {
     if (!eventData.name.trim()) newErrors.name = 'Event name is required';
     if (!eventData.date) newErrors.date = 'Date is required';
     if (!eventData.capacity || eventData.capacity <= 0) newErrors.capacity = 'Capacity must be positive';
+    if (eventData.registrations < 0) newErrors.registrations = 'Registrations cannot be negative';
+    if (eventData.registrations > eventData.capacity) newErrors.registrations = 'Registrations cannot exceed capacity';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -38,6 +45,8 @@ function CreateEvent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
+    
     if (!validateForm()) return;
 
     setLoading(true);
@@ -45,20 +54,22 @@ function CreateEvent() {
       const { data, error } = await supabase
         .from('events')
         .insert([{
-          name: `${eventData.name} ${eventData.workshopNumber ? `#${eventData.workshopNumber}` : ''}`,
+          name: `${eventData.name} ${eventData.workshopNumber ? `#${eventData.workshopNumber}` : ''}`.trim(),
           date: eventData.date,
-          capacity: eventData.capacity,
-          registrations: eventData.registrations,
+          capacity: Number(eventData.capacity),
+          registrations: Number(eventData.registrations),
           status: eventData.status,
           created_at: new Date().toISOString()
-        }]);
+        }])
+        .select(); // Add .select() to get the inserted data
 
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error('No data returned from server');
 
       navigate(`/events/${data[0].id}/manage`);
     } catch (error) {
       console.error('Error creating event:', error);
-      alert('Error creating event');
+      setSubmitError(error.message || 'Failed to create event. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,9 +105,15 @@ function CreateEvent() {
           className="max-w-2xl mx-auto"
         >
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Event Information</h1>
-            <p className="text-gray-500">Enter details similar to the example image</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Event</h1>
+            <p className="text-gray-500">Fill in all required fields to create your event</p>
           </div>
+
+          {submitError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600">{submitError}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
             {/* Event Name */}
@@ -148,6 +165,7 @@ function CreateEvent() {
                   name="date"
                   value={eventData.date}
                   onChange={handleInputChange}
+                  min={new Date().toISOString().split('T')[0]} // Prevent past dates
                   className={`pl-10 w-full px-4 py-2 border ${errors.date ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                 />
               </div>
@@ -193,9 +211,10 @@ function CreateEvent() {
                     max={eventData.capacity}
                     value={eventData.registrations}
                     onChange={handleInputChange}
-                    className="pl-10 w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className={`pl-10 w-full px-4 py-2 border ${errors.registrations ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                   />
                 </div>
+                {errors.registrations && <p className="mt-1 text-sm text-red-500">{errors.registrations}</p>}
               </div>
             </div>
 
@@ -217,51 +236,14 @@ function CreateEvent() {
               </select>
             </div>
 
-            {/* Preview Section */}
-            <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-md font-medium text-gray-700 mb-3">Preview (similar to your image):</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-xl font-bold text-gray-900">
-                    {eventData.name || "Event Name"} {eventData.workshopNumber && `#${eventData.workshopNumber}`}
-                  </h4>
-                </div>
-                
-                {eventData.date && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Date</p>
-                    <p className="text-md text-gray-900">
-                      {new Date(eventData.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-                )}
-                
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Registrations</p>
-                  <p className="text-md text-gray-900">
-                    {eventData.registrations}/{eventData.capacity}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-md text-gray-900 capitalize">
-                    {eventData.status} • {eventData.capacity > 0 ? 
-                      `${Math.round((eventData.registrations / eventData.capacity) * 100)}% full` : 
-                      '0% full'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Submit Button */}
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-4">
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={loading}
-                className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-3 px-8 rounded-xl font-medium shadow-sm shadow-green-100 flex items-center"
+                className="w-full max-w-md bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-3 px-8 rounded-xl font-medium shadow-sm shadow-green-100 flex items-center justify-center"
               >
                 {loading ? (
                   <>
@@ -278,6 +260,14 @@ function CreateEvent() {
                   </>
                 )}
               </motion.button>
+              
+              <button 
+                type="button"
+                onClick={() => navigate(-1)}
+                className="text-gray-600 hover:text-gray-800 font-medium"
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </motion.div>
