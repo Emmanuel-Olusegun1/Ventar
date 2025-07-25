@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa';
 import { BsLightningFill, BsThreeDotsVertical } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase } from './supabaseClient';
 
 function HostDashboard() {
   const navigate = useNavigate();
