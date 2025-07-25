@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaCalendarAlt, FaUsers, FaChartPie, FaQrcode, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase } from './supabaseClient';
 
 function CreateEvent() {
   const navigate = useNavigate();
