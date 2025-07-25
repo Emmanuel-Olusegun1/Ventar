@@ -8,6 +8,7 @@ import App from './App'
 import HostSignUp from './HostSignUp'
 import HostSignIn from './HostSignIn'
 import HostDashboard from './HostDashboard'
+import CreateEvent from './CreateEvent'
 
 // Create the router configuration
 const router = createBrowserRouter([
@@ -22,9 +23,14 @@ const router = createBrowserRouter([
   {
     path: '/host-login',
     element: <HostSignIn />,
-  },{
+  },
+  {
     path: '/host-dashboard',
     element: <HostDashboard />,
+  },
+  {
+    path: '/events/new',
+    element: <CreateEvent />,
   },
 ])
 

@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa';
 import { BsLightningFill, BsThreeDotsVertical } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient'; // Import your Supabase client
+import { supabase } from '../supabaseClient';
 
 function HostDashboard() {
   const navigate = useNavigate();
@@ -45,7 +45,6 @@ function HostDashboard() {
 
         if (error) throw error;
 
-        // Format the date for display
         const formattedEvents = data.map(event => ({
           ...event,
           date: new Date(event.date).toLocaleDateString('en-US', { 
@@ -461,7 +460,7 @@ function HostDashboard() {
                       </div>
                       <div className="flex justify-between mt-1">
                         <span className="text-xs text-gray-500">
-                          {Math.round(((event.registrations || 0) / (event.capacity || 1) * 100)}% full
+                          {Math.round(((event.registrations || 0) / (event.capacity || 1)) * 100)}% full
                         </span>
                         <span className={`text-xs font-medium ${
                           event.status === 'active' ? 'text-green-600' :
