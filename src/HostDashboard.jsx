@@ -432,7 +432,7 @@ function HostDashboard() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{event.name}</h3>
-                          <p className="text-sm text-gray-500">#{event.id}</p>
+                          <p className="text-sm text-gray-500">#{event.workshop_number}</p>
                         </div>
                       </div>
                       <button className="text-gray-400 hover:text-gray-600">
