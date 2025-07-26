@@ -1,8 +1,108 @@
-import { motion } from 'framer-motion'
-import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FaEnvelope, FaLock, FaArrowRight, FaSpinner } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from './supabaseClient';
 
 function HostSignIn() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+
+  // Load remembered email if exists
+  useState(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: rememberedEmail,
+        rememberMe: true
+      }));
+    }
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.password && !showResetForm) newErrors.password = 'Password is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) throw error;
+
+      // Store email if remember me is checked
+      if (formData.rememberMe) {
+        localStorage.setItem('rememberedEmail', formData.email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+
+      navigate('/host-dashboard');
+    } catch (error) {
+      console.error('Sign in error:', error);
+      setErrors({
+        form: error.message || 'Invalid email or password'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) {
+      setErrors({ email: 'Email is required' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+      setErrors({});
+    } catch (error) {
+      console.error('Password reset error:', error);
+      setErrors({
+        form: error.message || 'Failed to send reset email'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -29,7 +129,9 @@ function HostSignIn() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full mb-6"
           >
-            <span className="font-medium">Welcome back!</span>
+            <span className="font-medium">
+              {showResetForm ? 'Reset Password' : 'Welcome back!'}
+            </span>
           </motion.div>
           
           <motion.h1
@@ -38,7 +140,7 @@ function HostSignIn() {
             transition={{ delay: 0.1 }}
             className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
           >
-            Host Sign In
+            {showResetForm ? 'Forgot Password' : 'Host Sign In'}
           </motion.h1>
           
           <motion.p
@@ -47,100 +149,207 @@ function HostSignIn() {
             transition={{ delay: 0.2 }}
             className="text-gray-600"
           >
-            Sign in to manage your events and attendees
+            {showResetForm 
+              ? 'Enter your email to receive a password reset link' 
+              : 'Sign in to manage your events and attendees'}
           </motion.p>
         </section>
 
-        {/* Sign In Form */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white p-8 rounded-xl shadow-sm border border-gray-200"
-        >
-          <form className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                <FaEnvelope className="mr-2 text-green-600" />
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                <FaLock className="mr-2 text-green-600" />
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                placeholder="Enter your password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-green-600 hover:text-green-500">
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
-
+        {resetEmailSent ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-green-50 border border-green-200 rounded-lg p-6 text-center"
+          >
+            <h3 className="text-lg font-medium text-green-800 mb-2">
+              Password reset email sent!
+            </h3>
+            <p className="text-green-700">
+              Check your email at <span className="font-semibold">{resetEmail}</span> for instructions to reset your password.
+            </p>
             <button
-              type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+              onClick={() => {
+                setShowResetForm(false);
+                setResetEmailSent(false);
+              }}
+              className="mt-4 text-green-600 hover:text-green-800 font-medium"
             >
-              Sign In <FaArrowRight className="ml-2" />
+              Back to Sign In
             </button>
-          </form>
+          </motion.div>
+        ) : showResetForm ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white p-8 rounded-xl shadow-sm border border-gray-200"
+          >
+            <form onSubmit={handlePasswordReset} className="space-y-6">
+              <div>
+                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <FaEnvelope className="mr-2 text-green-600" />
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="reset-email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  required
+                />
+                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+              </div>
 
-       
-        </motion.div>
+              {errors.form && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                  <p className="text-sm text-red-700">{errors.form}</p>
+                </div>
+              )}
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="mt-8 text-center text-sm text-gray-600"
-        >
-          Don't have an account?{' '}
-          <Link to="/host-signup" className="font-medium text-green-600 hover:text-green-500">
-            Sign up here
-          </Link>
-        </motion.div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                {isLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Reset Link"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowResetForm(false)}
+                className="w-full text-gray-600 hover:text-gray-800 font-medium"
+              >
+                Back to Sign In
+              </button>
+            </form>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white p-8 rounded-xl shadow-sm border border-gray-200"
+          >
+            <form onSubmit={handleSignIn} className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <FaEnvelope className="mr-2 text-green-600" />
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  required
+                />
+                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+              </div>
+              
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <FaLock className="mr-2 text-green-600" />
+                  Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  className={`w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  required
+                />
+                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    id="rememberMe"
+                    name="rememberMe"
+                    type="checkbox"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                    Remember me
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowResetForm(true)}
+                  className="text-sm font-medium text-green-600 hover:text-green-500"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {errors.form && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                  <p className="text-sm text-red-700">{errors.form}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+              >
+                {isLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Signing In...
+                  </>
+                ) : (
+                  <>
+                    Sign In <FaArrowRight className="ml-2" />
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        )}
+
+        {!showResetForm && !resetEmailSent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-8 text-center text-sm text-gray-600"
+          >
+            Don't have an account?{' '}
+            <Link to="/host-signup" className="font-medium text-green-600 hover:text-green-500">
+              Sign up here
+            </Link>
+          </motion.div>
+        )}
       </main>
 
       {/* Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
         <div className="container mx-auto px-6 text-center text-gray-500">
           <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
-          <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
+          <p> Powered By <a href="https://algoritic.com.ng" className="hover:text-green-600">Algoritic Inc</a></p>
         </div>
-
       </footer>
     </div>
-  )
+  );
 }
 
-export default HostSignIn
+export default HostSignIn;
