@@ -30,12 +30,27 @@ function HostSignIn() {
     }
   }, []);
 
+  // Handle redirect after successful sign-in
+  useEffect(() => {
+    if (successMessage) {
+      console.log('successMessage set, redirecting to /host-dashboard in 1.5 seconds');
+      const timer = setTimeout(() => {
+        console.log('Redirecting to /host-dashboard');
+        navigate('/host-dashboard', { replace: true });
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, navigate]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
   const validateForm = () => {
@@ -53,33 +68,38 @@ function HostSignIn() {
     setIsLoading(true);
     setErrors({});
     setSuccessMessage('');
+    console.log('Starting sign-in process');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Clear any existing session
+      console.log('Clearing existing session');
+      await supabase.auth.signOut();
+      localStorage.removeItem('supabase.auth.token');
+
+      // Sign in with Supabase
+      const { data: { user, session }, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      if (error) {
-        throw error;
-      }
+      console.log('Supabase sign-in response:', { user, session, error });
 
-      if (data.user) {
-        // Store email if remember me is checked
-        if (formData.rememberMe) {
-          localStorage.setItem('rememberedEmail', formData.email);
-        } else {
-          localStorage.removeItem('rememberedEmail');
-        }
+      if (error) throw error;
+      if (!user) throw new Error('No user data returned');
 
-        // Show success message before redirecting
-        setSuccessMessage('Sign-in successful! Redirecting to dashboard...');
-        setTimeout(() => {
-          navigate('/host-dashboard');
-        }, 1500); // Delay to show success message
+      // Store email if remember me is checked
+      if (formData.rememberMe) {
+        console.log('Storing remembered email:', formData.email);
+        localStorage.setItem('rememberedEmail', formData.email);
       } else {
-        throw new Error('No user data returned');
+        console.log('Removing remembered email');
+        localStorage.removeItem('rememberedEmail');
       }
+
+      // Set success message
+      console.log('Setting success message');
+      setSuccessMessage('Sign-in successful! Redirecting to dashboard...');
+
     } catch (error) {
       console.error('Sign-in error:', error);
       setErrors({
@@ -87,6 +107,7 @@ function HostSignIn() {
       });
     } finally {
       setIsLoading(false);
+      console.log('Sign-in process completed, isLoading:', false);
     }
   };
 
@@ -99,16 +120,19 @@ function HostSignIn() {
 
     setIsLoading(true);
     setErrors({});
+    console.log('Starting password reset process');
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
+      console.log('Password reset response:', { error });
+
       if (error) throw error;
 
+      console.log('Setting resetEmailSent to true');
       setResetEmailSent(true);
-      setErrors({});
     } catch (error) {
       console.error('Password reset error:', error);
       setErrors({
@@ -116,6 +140,7 @@ function HostSignIn() {
       });
     } finally {
       setIsLoading(false);
+      console.log('Password reset process completed, isLoading:', false);
     }
   };
 

@@ -73,9 +73,10 @@ function HostSignUp() {
 
     setIsLoading(true);
     setErrors({});
+    console.log('Starting signup process');
 
     try {
-      // 1. Sign up with Supabase Auth
+      // Sign up with Supabase Auth
       const { data: { user, session }, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -86,7 +87,7 @@ function HostSignUp() {
       if (authError) throw authError;
       if (!user) throw new Error('User creation failed - no user returned');
 
-      // 2. Add additional user data to hosts table
+      // Add user data to hosts table
       const { error: dbError } = await supabase
         .from('hosts')
         .insert([{
@@ -100,13 +101,22 @@ function HostSignUp() {
 
       if (dbError) throw dbError;
 
-      // 3. Clear session to prevent refresh token issues
+      // Clear session to avoid refresh token issues
+      console.log('Clearing session post-signup');
       await supabase.auth.signOut();
       localStorage.removeItem('supabase.auth.token');
 
-      // 4. Set success state
-      console.log('Signup successful, setting signupSuccess to true');
+      // Set success state
+      console.log('Setting signupSuccess to true');
       setSignupSuccess(true);
+      setFormData({
+        fullName: '',
+        email: '',
+        organization: '',
+        phone: '',
+        password: '',
+        confirmPassword: ''
+      });
 
     } catch (error) {
       console.error('Signup error:', error);
@@ -115,35 +125,23 @@ function HostSignUp() {
       });
     } finally {
       setIsLoading(false);
-      console.log('Signup process completed, isLoading set to false');
+      console.log('Signup process completed, isLoading:', false);
     }
   };
 
-  // Monitor auth state changes
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', { event, session });
-      if (event === 'SIGNED_IN' && signupSuccess) {
-        // Ensure no session persists after signup
-        supabase.auth.signOut();
-      }
-    });
-    return () => authListener.subscription.unsubscribe();
-  }, [signupSuccess]);
-
-  // Handle redirect after signupSuccess
   useEffect(() => {
     if (signupSuccess) {
-      console.log('signupSuccess is true, initiating redirect in 2 seconds');
+      console.log('signupSuccess is true, redirecting in 2 seconds');
       const timer = setTimeout(() => {
         console.log('Redirecting to /host-login');
-        navigate('/host-login');
+        navigate('/host-login', { replace: true });
       }, 2000);
       return () => clearTimeout(timer);
     }
   }, [signupSuccess, navigate]);
 
   if (signupSuccess) {
+    console.log('Rendering success modal');
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-4">
         <motion.div
@@ -154,7 +152,7 @@ function HostSignUp() {
           <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
           <p className="text-gray-600 mb-6">
-            Your host account has been successfully created. Redirecting to sign-in page...
+            Your host account has been created. Redirecting to sign-in page...
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <motion.div 
