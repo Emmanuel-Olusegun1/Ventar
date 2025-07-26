@@ -5,7 +5,6 @@ import {
   FaUsers, 
   FaChartLine, 
   FaTools, 
-  FaCrown, 
   FaShieldAlt, 
   FaEye, 
   FaEyeSlash,
@@ -82,6 +81,8 @@ function HostSignUp() {
         password: formData.password,
       });
 
+      console.log('Supabase sign-up response:', { user, authError });
+
       if (authError) throw authError;
       if (!user) throw new Error('User creation failed - no user returned');
 
@@ -101,16 +102,18 @@ function HostSignUp() {
 
       // 3. Show success and redirect
       setSignupSuccess(true);
-      setTimeout(() => navigate('/host-login'), 2000);
+      setTimeout(() => {
+        navigate('/host-login');
+      }, 2000);
 
     } catch (error) {
       console.error('Signup error:', error);
       setErrors({
-        ...errors,
         form: error.message || 'Signup failed. Please try again.'
       });
     } finally {
       setIsLoading(false);
+      console.log('Signup process completed, isLoading set to false');
     }
   };
 
@@ -125,13 +128,15 @@ function HostSignUp() {
           <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
           <p className="text-gray-600 mb-6">
-            Your host account has been successfully created. Redirecting to your dashboard...
+            Your host account has been successfully created. Redirecting to sign-in page...
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-green-600 h-2.5 rounded-full animate-pulse" 
-              style={{ width: '100%' }}
-            ></div>
+            <motion.div 
+              className="bg-green-600 h-2.5 rounded-full"
+              initial={{ width: '0%' }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 2 }}
+            ></motion.div>
           </div>
         </motion.div>
       </div>
