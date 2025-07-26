@@ -9,4 +9,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+})
+
+// Optional: Set up auth state change listener
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth event:', event)
+  console.log('Session:', session)
+})

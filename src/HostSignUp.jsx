@@ -101,7 +101,7 @@ function HostSignUp() {
 
       // 3. Show success and redirect
       setSignupSuccess(true);
-      setTimeout(() => navigate('/host-dashboard'), 2000);
+      setTimeout(() => navigate('/host-login'), 2000);
 
     } catch (error) {
       console.error('Signup error:', error);

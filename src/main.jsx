@@ -4,11 +4,13 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 
 // Import your components
-import App from './App'
-import HostSignUp from './HostSignUp'
-import HostSignIn from './HostSignIn'
-import HostDashboard from './HostDashboard'
-import CreateEvent from './CreateEvent'
+import App from './App';
+import HostSignUp from './HostSignUp';
+import HostSignIn from './HostSignIn';
+import HostDashboard from './HostDashboard';
+import CreateEvent from './CreateEvent';
+import AuthRedirectHandler from './components/AuthRedirectHandler';
+import AuthCallback from './components/AuthCallback';
 
 // Create the router configuration
 const router = createBrowserRouter([
@@ -31,6 +33,14 @@ const router = createBrowserRouter([
   {
     path: '/events/new',
     element: <CreateEvent />,
+  },
+  {
+    path: '/auth-redirect',
+    element: <AuthRedirectHandler />,
+  },
+  {
+    path: '/auth-callback',
+    element: <AuthCallback />,
   },
 ])
 
