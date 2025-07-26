@@ -39,6 +39,9 @@ function HostSignUp() {
       ...formData,
       [name]: value
     });
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
   const validateForm = () => {
@@ -48,12 +51,14 @@ function HostSignUp() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Please enter a valid email';
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(formData.password)) {
+      newErrors.password = 'Must contain uppercase, lowercase, and number';
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
@@ -68,37 +73,41 @@ function HostSignUp() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
+
     try {
-      // Create auth user
-      const { user, error: authError } = await supabase.auth.signUp({
+      // 1. Sign up with Supabase Auth
+      const { data: { user }, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
       });
 
       if (authError) throw authError;
+      if (!user) throw new Error('User creation failed - no user returned');
 
-      // Add to hosts table
+      // 2. Add additional user data to hosts table
       const { error: dbError } = await supabase
         .from('hosts')
         .insert([{
           id: user.id,
           email: formData.email,
           full_name: formData.fullName,
-          organization: formData.organization,
-          phone: formData.phone,
+          organization: formData.organization || null,
+          phone: formData.phone || null,
           role: 'host'
         }]);
 
       if (dbError) throw dbError;
 
-      // Show success and redirect
+      // 3. Show success and redirect
       setSignupSuccess(true);
       setTimeout(() => navigate('/host-dashboard'), 2000);
+
     } catch (error) {
       console.error('Signup error:', error);
       setErrors({
         ...errors,
-        form: error.message || 'Failed to create account. Please try again.'
+        form: error.message || 'Signup failed. Please try again.'
       });
     } finally {
       setIsLoading(false);
@@ -134,13 +143,19 @@ function HostSignUp() {
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <a href="/" className="flex items-center text-gray-700 hover:text-green-600">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center text-gray-700 hover:text-green-600"
+          >
             <BsArrowLeft className="mr-2" />
             Back to Home
-          </a>
-          <a href="/host-login" className="text-gray-700 hover:text-green-600 font-medium">
+          </button>
+          <button 
+            onClick={() => navigate('/host-login')}
+            className="text-gray-700 hover:text-green-600 font-medium"
+          >
             Sign In
-          </a>
+          </button>
         </div>
       </nav>
 
@@ -172,27 +187,8 @@ function HostSignUp() {
             transition={{ delay: 0.2 }}
             className="text-lg text-gray-600 mb-10"
           >
-            Join thousands of successful event organizers who trust Ventar to create memorable experiences and grow their communities.
+            Join thousands of successful event organizers who trust our platform to create memorable experiences.
           </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-6 mb-16"
-          >
-            {[
-              { value: "10K+", label: "Events Created" },
-              { value: "50K+", label: "Happy Hosts" },
-              { value: "99.9%", label: "Uptime" },
-              { value: "24/7", label: "Support" }
-            ].map((stat, index) => (
-              <div key={index} className="text-center px-4">
-                <div className="text-2xl font-bold text-green-700">{stat.value}</div>
-                <div className="text-gray-500 text-sm">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
         </section>
 
         {/* Two Column Layout */}
@@ -205,13 +201,10 @@ function HostSignUp() {
             className="lg:w-1/2"
           >
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Start Hosting Today</h2>
-              <p className="text-gray-600 mb-8">
-                Create your host account and launch your first event
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Host Account</h2>
               
               {errors.form && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -228,7 +221,7 @@ function HostSignUp() {
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
+                    Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -244,7 +237,7 @@ function HostSignUp() {
                 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
+                    Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -275,7 +268,7 @@ function HostSignUp() {
                 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
+                    Phone Number (Optional)
                   </label>
                   <input
                     type="tel"
@@ -290,7 +283,7 @@ function HostSignUp() {
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -299,7 +292,7 @@ function HostSignUp() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Create a password"
+                      placeholder="Create a password (min 8 characters)"
                       className={`w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                     />
                     <button
@@ -315,7 +308,7 @@ function HostSignUp() {
 
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password
+                    Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -354,7 +347,14 @@ function HostSignUp() {
                 </button>
                 
                 <p className="text-center text-gray-600">
-                  Already have an account? <a href="/host-login" className="text-green-600 hover:underline">Sign in here</a>
+                  Already have an account?{' '}
+                  <button 
+                    type="button"
+                    onClick={() => navigate('/host-login')}
+                    className="text-green-600 hover:underline"
+                  >
+                    Sign in here
+                  </button>
                 </p>
               </form>
             </div>
