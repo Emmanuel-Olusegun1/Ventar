@@ -163,7 +163,7 @@ function HostDashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent mr-10 cursor-pointer"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/host-dashboard')}
             >
               Ventar
             </motion.div>
