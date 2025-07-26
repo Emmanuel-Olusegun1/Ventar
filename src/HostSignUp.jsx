@@ -433,6 +433,4 @@ function HostSignUp() {
   );
 }
 
-export default HostSignUp;git add .
-git commit -m 'yoo'
-git push origin main
+export default HostSignUp;
