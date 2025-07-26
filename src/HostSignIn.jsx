@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaLock, FaArrowRight, FaSpinner } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaArrowRight, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
@@ -16,9 +16,10 @@ function HostSignIn() {
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Load remembered email if exists
-  useState(() => {
+  useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
       setFormData(prev => ({
@@ -50,26 +51,39 @@ function HostSignIn() {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
+    setSuccessMessage('');
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      if (error) throw error;
-
-      // Store email if remember me is checked
-      if (formData.rememberMe) {
-        localStorage.setItem('rememberedEmail', formData.email);
-      } else {
-        localStorage.removeItem('rememberedEmail');
+      if (error) {
+        throw error;
       }
 
-      navigate('/host-dashboard');
+      if (data.user) {
+        // Store email if remember me is checked
+        if (formData.rememberMe) {
+          localStorage.setItem('rememberedEmail', formData.email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
+
+        // Show success message before redirecting
+        setSuccessMessage('Sign-in successful! Redirecting to dashboard...');
+        setTimeout(() => {
+          navigate('/host-dashboard');
+        }, 1500); // Delay to show success message
+      } else {
+        throw new Error('No user data returned');
+      }
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('Sign-in error:', error);
       setErrors({
-        form: error.message || 'Invalid email or password'
+        form: error.message || 'Invalid email or password. Please try again.'
       });
     } finally {
       setIsLoading(false);
@@ -84,6 +98,8 @@ function HostSignIn() {
     }
 
     setIsLoading(true);
+    setErrors({});
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -96,7 +112,7 @@ function HostSignIn() {
     } catch (error) {
       console.error('Password reset error:', error);
       setErrors({
-        form: error.message || 'Failed to send reset email'
+        form: error.message || 'Failed to send reset email. Please try again.'
       });
     } finally {
       setIsLoading(false);
@@ -155,13 +171,28 @@ function HostSignIn() {
           </motion.p>
         </section>
 
+        {successMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-green-50 border border-green-200 rounded-lg p-6 text-center mb-6"
+          >
+            <h3 className="text-lg font-medium text-green-800 mb-2 flex items-center justify-center">
+              <FaCheckCircle className="mr-2" />
+              Success
+            </h3>
+            <p className="text-green-700">{successMessage}</p>
+          </motion.div>
+        )}
+
         {resetEmailSent ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-green-50 border border-green-200 rounded-lg p-6 text-center"
           >
-            <h3 className="text-lg font-medium text-green-800 mb-2">
+            <h3 className="text-lg font-medium text-green-800 mb-2 flex items-center justify-center">
+              <FaCheckCircle className="mr-2" />
               Password reset email sent!
             </h3>
             <p className="text-green-700">
@@ -171,6 +202,7 @@ function HostSignIn() {
               onClick={() => {
                 setShowResetForm(false);
                 setResetEmailSent(false);
+                setResetEmail('');
               }}
               className="mt-4 text-green-600 hover:text-green-800 font-medium"
             >
@@ -225,7 +257,10 @@ function HostSignIn() {
 
               <button
                 type="button"
-                onClick={() => setShowResetForm(false)}
+                onClick={() => {
+                  setShowResetForm(false);
+                  setErrors({});
+                }}
                 className="w-full text-gray-600 hover:text-gray-800 font-medium"
               >
                 Back to Sign In
