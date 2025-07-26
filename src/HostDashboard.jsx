@@ -8,13 +8,12 @@ import {
   FaCog,
   FaSearch,
   FaPlus,
-  FaEllipsisV,
   FaRegCheckCircle,
   FaUserPlus,
   FaQrcode,
   FaSignOutAlt
 } from 'react-icons/fa';
-import { BsLightningFill, BsThreeDotsVertical } from 'react-icons/bs';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
@@ -27,44 +26,52 @@ function HostDashboard() {
     { id: 2, message: 'Your workshop reached 80% capacity', time: '1 hour ago', read: true, icon: <FaChartPie className="text-blue-500"/> },
     { id: 3, message: 'Community Mixer starts tomorrow', time: '3 hours ago', read: true, icon: <FaCalendarAlt className="text-purple-500"/> }
   ]);
-
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Fetch events from Supabase
+  // Fetch user and their events from Supabase
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchUserAndEvents = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .order('created_at', { ascending: false });
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
 
-        if (error) throw error;
+        if (user) {
+          // Fetch only events created by the logged-in user
+          const { data, error } = await supabase
+            .from('events')
+            .select('*')
+            .eq('user_id', user.id) // Filter by user_id
+            .order('created_at', { ascending: false });
 
-        const formattedEvents = data.map(event => ({
-          ...event,
-          date: new Date(event.date).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-          })
-        }));
+          if (error) throw error;
 
-        setEvents(formattedEvents);
-        setFilteredEvents(formattedEvents);
+          const formattedEvents = data.map(event => ({
+            ...event,
+            date: new Date(event.date).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            })
+          }));
+
+          setEvents(formattedEvents);
+          setFilteredEvents(formattedEvents);
+        }
       } catch (error) {
-        console.error('Error fetching events:', error);
-        alert('Error loading events');
+        console.error('Error fetching user or events:', error);
+        alert('Error loading dashboard');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
+    fetchUserAndEvents();
   }, []);
 
   // Filter events based on search query
@@ -140,7 +147,7 @@ function HostDashboard() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <p className="mt-4 text-gray-600">Loading events...</p>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -255,9 +262,9 @@ function HostDashboard() {
                 onClick={() => setShowDropdown(!showDropdown)}
               >
                 <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-medium">
-                  AJ
+                  {user ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
-                <span className="text-sm font-medium text-gray-700 hidden md:inline">Alex Johnson</span>
+                <span className="text-sm font-medium text-gray-700 hidden md:inline">{user ? user.email.split('@')[0] : 'User'}</span>
               </button>
               
               <AnimatePresence>
@@ -302,7 +309,7 @@ function HostDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Event Dashboard</h1>
-            <p className="text-gray-500 mt-1">Manage your events and track engagement</p>
+            <p className="text-gray-500 mt-1">{user ? `Welcome back, ${user.email.split('@')[0]}!` : 'Manage your events and track engagement'}</p>
           </div>
           <motion.button 
             whileHover={{ scale: 1.03 }}
@@ -314,6 +321,23 @@ function HostDashboard() {
             New Event
           </motion.button>
         </div>
+
+        {/* Welcome Message for New Users */}
+        {events.length === 0 && !searchQuery && (
+          <div className="bg-white rounded-xl border border-gray-100 p-8 text-center mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Ventar!</h2>
+            <p className="text-gray-500 mb-4">It looks like you're new here. Start by creating your first event to engage your audience.</p>
+            <motion.button 
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center shadow-sm shadow-green-100 mx-auto"
+              onClick={() => navigate('/events/new')}
+            >
+              <FaPlus className="mr-2" />
+              Create Your First Event
+            </motion.button>
+          </div>
+        )}
 
         {/* Stats Cards - Neumorphic Design */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
@@ -391,32 +415,19 @@ function HostDashboard() {
             </div>
           </div>
           
-          {filteredEvents.length === 0 ? (
+          {filteredEvents.length === 0 && searchQuery && (
             <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-              <p className="text-gray-500 mb-4">
-                {searchQuery ? "No events found matching your search" : "You don't have any events yet"}
-              </p>
-              {!searchQuery && (
-                <motion.button 
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white py-2.5 px-5 rounded-xl font-medium flex items-center shadow-sm shadow-green-100 mx-auto"
-                  onClick={() => navigate('/events/new')}
-                >
-                  <FaPlus className="mr-2" />
-                  Create Your First Event
-                </motion.button>
-              )}
-              {searchQuery && (
-                <button 
-                  className="text-green-600 hover:text-green-700 font-medium"
-                  onClick={() => setSearchQuery('')}
-                >
-                  Clear search
-                </button>
-              )}
+              <p className="text-gray-500 mb-4">No events found matching your search</p>
+              <button 
+                className="text-green-600 hover:text-green-700 font-medium"
+                onClick={() => setSearchQuery('')}
+              >
+                Clear search
+              </button>
             </div>
-          ) : (
+          )}
+
+          {filteredEvents.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredEvents.map((event) => (
                 <motion.div
