@@ -12,7 +12,7 @@ import {
   FaCheckCircle
 } from 'react-icons/fa';
 import { BsArrowLeft, BsLightningFill } from 'react-icons/bs';
-import { supabase } from '../supabaseClient';
+import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
 function HostSignUp() {
