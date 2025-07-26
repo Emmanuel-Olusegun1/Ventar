@@ -1,9 +1,22 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCalendarAlt, FaUsers, FaChartLine, FaTools, FaCrown, FaShieldAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { 
+  FaCalendarAlt, 
+  FaUsers, 
+  FaChartLine, 
+  FaTools, 
+  FaCrown, 
+  FaShieldAlt, 
+  FaEye, 
+  FaEyeSlash,
+  FaCheckCircle
+} from 'react-icons/fa';
 import { BsArrowLeft, BsLightningFill } from 'react-icons/bs';
+import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 function HostSignUp() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -16,6 +29,8 @@ function HostSignUp() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,6 +38,13 @@ function HostSignUp() {
       ...formData,
       [name]: value
     });
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: null
+      });
+    }
   };
 
   const validateForm = () => {
@@ -32,12 +54,14 @@ function HostSignUp() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Please enter a valid email';
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(formData.password)) {
+      newErrors.password = 'Password must contain uppercase, lowercase, and number';
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
@@ -47,27 +71,94 @@ function HostSignUp() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Form is valid, proceed with submission
-      console.log('Form submitted:', formData);
-      // Here you would typically send the data to your backend
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      // 1. Sign up with Supabase Auth
+      const { user: authUser, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (authError) throw authError;
+
+      // 2. Add additional user data to hosts table
+      const { data, error: dbError } = await supabase
+        .from('hosts')
+        .insert([{
+          id: authUser.id,
+          email: formData.email,
+          full_name: formData.fullName,
+          organization: formData.organization || null,
+          phone: formData.phone || null,
+          role: 'host'
+        }])
+        .single();
+
+      if (dbError) throw dbError;
+
+      // 3. Show success and redirect
+      setSignupSuccess(true);
+      setTimeout(() => navigate('/host-dashboard'), 2000);
+
+    } catch (error) {
+      console.error('Signup error:', error);
+      setErrors({
+        ...errors,
+        form: error.message || 'Signup failed. Please try again.'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (signupSuccess) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
+          <p className="text-gray-600 mb-6">
+            Your host account has been successfully created. Redirecting to your dashboard...
+          </p>
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-green-600 h-2.5 rounded-full animate-pulse" 
+              style={{ width: '100%' }}
+            ></div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <a href="/" className="flex items-center text-gray-700 hover:text-green-600">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center text-gray-700 hover:text-green-600"
+          >
             <BsArrowLeft className="mr-2" />
             Back to Home
-          </a>
-          <a href="/host-login" className="text-gray-700 hover:text-green-600 font-medium">
+          </button>
+          <button 
+            onClick={() => navigate('/host-login')}
+            className="text-gray-700 hover:text-green-600 font-medium"
+          >
             Sign In
-          </a>
+          </button>
         </div>
       </nav>
 
@@ -99,27 +190,8 @@ function HostSignUp() {
             transition={{ delay: 0.2 }}
             className="text-lg text-gray-600 mb-10"
           >
-            Join thousands of successful event organizers who trust Ventar to create memorable experiences and grow their communities.
+            Join thousands of successful event organizers who trust our platform to create memorable experiences.
           </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-6 mb-16"
-          >
-            {[
-              { value: "10K+", label: "Events Created" },
-              { value: "50K+", label: "Happy Hosts" },
-              { value: "99.9%", label: "Uptime" },
-              { value: "24/7", label: "Support" }
-            ].map((stat, index) => (
-              <div key={index} className="text-center px-4">
-                <div className="text-2xl font-bold text-green-700">{stat.value}</div>
-                <div className="text-gray-500 text-sm">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
         </section>
 
         {/* Two Column Layout */}
@@ -132,15 +204,27 @@ function HostSignUp() {
             className="lg:w-1/2"
           >
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Start Hosting Today</h2>
-              <p className="text-gray-600 mb-8">
-                Create your host account and launch your first event
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Host Account</h2>
               
+              {errors.form && (
+                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">{errors.form}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
+                    Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -156,7 +240,7 @@ function HostSignUp() {
                 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
+                    Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -187,7 +271,7 @@ function HostSignUp() {
                 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
+                    Phone Number (Optional)
                   </label>
                   <input
                     type="tel"
@@ -202,7 +286,7 @@ function HostSignUp() {
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -211,7 +295,7 @@ function HostSignUp() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Create a password"
+                      placeholder="Create a password (min 8 characters)"
                       className={`w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                     />
                     <button
@@ -227,7 +311,7 @@ function HostSignUp() {
 
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password
+                    Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -252,13 +336,31 @@ function HostSignUp() {
                 
                 <button
                   type="submit"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                  disabled={isLoading}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
                 >
-                  Create Host Account
+                  {isLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Create Host Account"
+                  )}
                 </button>
                 
                 <p className="text-center text-gray-600">
-                  Already have an account? <a href="/host-login" className="text-green-600 hover:underline">Sign in here</a>
+                  Already have an account?{' '}
+                  <button 
+                    type="button"
+                    onClick={() => navigate('/host-login')}
+                    className="text-green-600 hover:underline"
+                  >
+                    Sign in here
+                  </button>
                 </p>
               </form>
             </div>
@@ -272,38 +374,38 @@ function HostSignUp() {
             className="lg:w-1/2"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-8">
-              Everything You Need to Host Successfully
+              Hosting Benefits
             </h2>
             <p className="text-gray-600 mb-10">
-              Powerful tools and features designed to make event hosting effortless and professional
+              Get access to powerful tools designed specifically for event organizers
             </p>
             
             <div className="space-y-8">
               {[
                 {
                   icon: <FaCalendarAlt className="text-green-600 text-xl" />,
-                  title: "Easy Event Creation",
-                  description: "Create and customize events in minutes with our intuitive interface"
+                  title: "Easy Event Management",
+                  description: "Create and manage events with our intuitive dashboard"
                 },
                 {
                   icon: <FaUsers className="text-green-600 text-xl" />,
-                  title: "Guest Management",
-                  description: "Track registrations, send updates, and manage attendee lists effortlessly"
+                  title: "Attendee Tracking",
+                  description: "Monitor registrations and check-ins in real-time"
                 },
                 {
                   icon: <FaChartLine className="text-green-600 text-xl" />,
-                  title: "Real-time Analytics",
-                  description: "Monitor event performance with detailed insights and reporting"
-                },
-                {
-                  icon: <FaTools className="text-green-600 text-xl" />,
-                  title: "Time-saving Tools",
-                  description: "Automated reminders, check-in systems, and seamless integrations"
+                  title: "Performance Analytics",
+                  description: "Get insights into your event's success metrics"
                 },
                 {
                   icon: <FaShieldAlt className="text-green-600 text-xl" />,
-                  title: "Secure & Reliable",
-                  description: "Enterprise-grade security with 99.9% uptime guarantee"
+                  title: "Secure Payments",
+                  description: "Process payments safely with our secure system"
+                },
+                {
+                  icon: <FaCrown className="text-green-600 text-xl" />,
+                  title: "Premium Support",
+                  description: "Dedicated support team for all your hosting needs"
                 }
               ].map((feature, index) => (
                 <div key={index} className="flex gap-4">
@@ -317,30 +419,6 @@ function HostSignUp() {
                 </div>
               ))}
             </div>
-            
-            {/* Bottom CTA */}
-            <div className="mt-16 bg-green-50 rounded-xl p-8 border border-green-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Ready to Create Amazing Events?
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Join the community of successful event hosts and start creating memorable experiences today.
-              </p>
-              {/* <div className="flex flex-col sm:flex-row gap-4">
-                <a
-                  href="/free-trial"
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium text-center transition-colors"
-                >
-                  Start Free
-                </a>
-                <a
-                  href="/demo"
-                  className="bg-white border border-green-600 text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg font-medium text-center transition-colors"
-                >
-                  View Demo
-                </a>
-              </div> */}
-            </div>
           </motion.div>
         </div>
       </main>
@@ -348,13 +426,13 @@ function HostSignUp() {
       {/* Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
         <div className="container mx-auto px-6 text-center text-gray-500">
-          <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
-          <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
+          <p>© {new Date().getFullYear()} EventHub. All rights reserved.</p>
         </div>
-       
       </footer>
     </div>
   );
 }
 
-export default HostSignUp;
+export default HostSignUp;git add .
+git commit -m 'yoo'
+git push origin main
