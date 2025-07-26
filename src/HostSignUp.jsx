@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FaCalendarAlt, 
@@ -100,11 +100,9 @@ function HostSignUp() {
 
       if (dbError) throw dbError;
 
-      // 3. Show success and redirect
+      // 3. Set success state
+      console.log('Signup successful, setting signupSuccess to true');
       setSignupSuccess(true);
-      setTimeout(() => {
-        navigate('/host-login');
-      }, 2000);
 
     } catch (error) {
       console.error('Signup error:', error);
@@ -116,6 +114,18 @@ function HostSignUp() {
       console.log('Signup process completed, isLoading set to false');
     }
   };
+
+  // Handle redirect after signupSuccess
+  useEffect(() => {
+    if (signupSuccess) {
+      console.log('signupSuccess is true, initiating redirect in 2 seconds');
+      const timer = setTimeout(() => {
+        console.log('Redirecting to /host-login');
+        navigate('/host-login');
+      }, 2000);
+      return () => clearTimeout(timer); // Cleanup timer on unmount
+    }
+  }, [signupSuccess, navigate]);
 
   if (signupSuccess) {
     return (
