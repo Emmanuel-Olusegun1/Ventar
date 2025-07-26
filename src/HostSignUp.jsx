@@ -76,12 +76,12 @@ function HostSignUp() {
 
     try {
       // 1. Sign up with Supabase Auth
-      const { data: { user }, error: authError } = await supabase.auth.signUp({
+      const { data: { user, session }, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
       });
 
-      console.log('Supabase sign-up response:', { user, authError });
+      console.log('Supabase sign-up response:', { user, session, authError });
 
       if (authError) throw authError;
       if (!user) throw new Error('User creation failed - no user returned');
@@ -100,7 +100,11 @@ function HostSignUp() {
 
       if (dbError) throw dbError;
 
-      // 3. Set success state
+      // 3. Clear session to prevent refresh token issues
+      await supabase.auth.signOut();
+      localStorage.removeItem('supabase.auth.token');
+
+      // 4. Set success state
       console.log('Signup successful, setting signupSuccess to true');
       setSignupSuccess(true);
 
@@ -115,6 +119,18 @@ function HostSignUp() {
     }
   };
 
+  // Monitor auth state changes
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', { event, session });
+      if (event === 'SIGNED_IN' && signupSuccess) {
+        // Ensure no session persists after signup
+        supabase.auth.signOut();
+      }
+    });
+    return () => authListener.subscription.unsubscribe();
+  }, [signupSuccess]);
+
   // Handle redirect after signupSuccess
   useEffect(() => {
     if (signupSuccess) {
@@ -123,7 +139,7 @@ function HostSignUp() {
         console.log('Redirecting to /host-login');
         navigate('/host-login');
       }, 2000);
-      return () => clearTimeout(timer); // Cleanup timer on unmount
+      return () => clearTimeout(timer);
     }
   }, [signupSuccess, navigate]);
 
