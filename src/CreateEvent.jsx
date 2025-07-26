@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaCalendarAlt, 
@@ -24,6 +24,21 @@ function CreateEvent() {
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [activeSection, setActiveSection] = useState('details');
+
+  // Check session on mount
+  useEffect(() => {
+    async function verifySession() {
+      console.log('Verifying Supabase session');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('Session check:', { session, error });
+
+      if (error || !session) {
+        console.log('No valid session, redirecting to /host-login');
+        navigate('/host-login', { replace: true });
+      }
+    }
+    verifySession();
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,28 +69,50 @@ function CreateEvent() {
     if (!validateForm()) return;
 
     setLoading(true);
+    console.log('Starting event creation process');
+
     try {
+      // Get current user to associate event
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('User check:', { user, userError });
+
+      if (userError) throw userError;
+      if (!user) throw new Error('No authenticated user found');
+
+      // Insert event
+      const eventName = `${eventData.name} ${eventData.workshopNumber ? `#${eventData.workshopNumber}` : ''}`.trim();
+      console.log('Inserting event:', { eventName, date: eventData.date, capacity: eventData.capacity });
+
       const { data, error } = await supabase
         .from('events')
         .insert([{
-          name: `${eventData.name} ${eventData.workshopNumber ? `#${eventData.workshopNumber}` : ''}`.trim(),
+          name: eventName,
           date: eventData.date,
           capacity: Number(eventData.capacity),
-          registrations: 0, // Start with 0 registrations
+          registrations: 0,
           status: eventData.status,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          host_id: user.id // Associate event with host
         }])
         .select();
+
+      console.log('Supabase insert response:', { data, error });
 
       if (error) throw error;
       if (!data || data.length === 0) throw new Error('No data returned from server');
 
-      navigate('/host-dashboard'); // Redirect to host dashboard
+      // Clear localStorage to prevent token issues
+      console.log('Clearing supabase.auth.token from localStorage');
+      localStorage.removeItem('supabase.auth.token');
+
+      console.log('Redirecting to /host-dashboard');
+      navigate('/host-dashboard', { replace: true });
     } catch (error) {
       console.error('Error creating event:', error);
       setSubmitError(error.message || 'Failed to create event. Please try again.');
     } finally {
       setLoading(false);
+      console.log('Event creation process completed, loading:', false);
     }
   };
 
@@ -154,7 +191,7 @@ function CreateEvent() {
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 0 101.414 1.414L10 11.414l1.293 1.293a1 0 001.414-1.414L11.414 10l1.293-1.293a1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <div className="ml-3">
