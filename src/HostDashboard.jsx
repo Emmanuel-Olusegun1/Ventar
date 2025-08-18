@@ -29,50 +29,79 @@ function HostDashboard() {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Fetch user and their events from Supabase
+  // Check session on component mount
   useEffect(() => {
-    const fetchUserAndEvents = async () => {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        navigate('/login');
+      } else {
+        setUser(session.user);
+      }
+    };
+
+    checkSession();
+  }, [navigate]);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem('sb-auth-token');
+        localStorage.removeItem('sb-user-data');
+        navigate('/login');
+      }
+      
+      if (session) {
+        setUser(session.user);
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Fetch events when user is available
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!user) return;
+      
       try {
         setLoading(true);
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-        if (user) {
-          // Fetch only events created by the logged-in user
-          const { data, error } = await supabase
-            .from('events')
-            .select('*')
-            .eq('user_id', user.id) // Filter by user_id
-            .order('created_at', { ascending: false });
+        if (error) throw error;
 
-          if (error) throw error;
+        const formattedEvents = data.map(event => ({
+          ...event,
+          date: new Date(event.date).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+          })
+        }));
 
-          const formattedEvents = data.map(event => ({
-            ...event,
-            date: new Date(event.date).toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'short', 
-              day: 'numeric' 
-            })
-          }));
-
-          setEvents(formattedEvents);
-          setFilteredEvents(formattedEvents);
-        }
+        setEvents(formattedEvents);
+        setFilteredEvents(formattedEvents);
       } catch (error) {
-        console.error('Error fetching user or events:', error);
-        alert('Error loading dashboard');
+        console.error('Error fetching events:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserAndEvents();
-  }, []);
+    fetchEvents();
+  }, [user]);
 
   // Filter events based on search query
   useEffect(() => {
@@ -83,6 +112,23 @@ function HostDashboard() {
     );
     setFilteredEvents(filtered);
   }, [searchQuery, events]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showNotificationsDropdown && !event.target.closest('.notifications-dropdown')) {
+        setShowNotificationsDropdown(false);
+      }
+      if (showProfileDropdown && !event.target.closest('.profile-dropdown')) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotificationsDropdown, showProfileDropdown]);
 
   const toggleNotificationRead = (id) => {
     setNotifications(notifications.map(n => 
@@ -98,9 +144,14 @@ function HostDashboard() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/');
+      
+      localStorage.removeItem('sb-auth-token');
+      localStorage.removeItem('sb-user-data');
+      
+      navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
+      alert('Error signing out. Please try again.');
     }
   };
 
@@ -187,21 +238,21 @@ function HostDashboard() {
               ))}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            <div className="relative notifications-dropdown">
               <button 
                 className="p-2 rounded-full hover:bg-gray-100 relative"
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
               >
                 <FaBell className="h-5 w-5 text-gray-600" />
                 {notifications.some(n => !n.read) && (
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                 )}
               </button>
-              
+
               <AnimatePresence>
-                {showDropdown && (
+                {showNotificationsDropdown && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -255,20 +306,20 @@ function HostDashboard() {
                 )}
               </AnimatePresence>
             </div>
-            
-            <div className="relative">
+
+            <div className="relative profile-dropdown">
               <button 
                 className="flex items-center space-x-2 focus:outline-none"
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
               >
                 <div className="h-8 w-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white font-medium">
                   {user ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <span className="text-sm font-medium text-gray-700 hidden md:inline">{user ? user.email.split('@')[0] : 'User'}</span>
               </button>
-              
+
               <AnimatePresence>
-                {showDropdown && (
+                {showProfileDropdown && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -414,7 +465,7 @@ function HostDashboard() {
               )}
             </div>
           </div>
-          
+
           {filteredEvents.length === 0 && searchQuery && (
             <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
               <p className="text-gray-500 mb-4">No events found matching your search</p>
@@ -450,7 +501,7 @@ function HostDashboard() {
                         <BsThreeDotsVertical />
                       </button>
                     </div>
-                    
+
                     <div className="mt-4 flex justify-between items-center">
                       <div>
                         <p className="text-sm text-gray-500">Date</p>
@@ -461,7 +512,7 @@ function HostDashboard() {
                         <p className="font-medium text-gray-900">{event.registrations || 0}/{event.capacity || 0}</p>
                       </div>
                     </div>
-                    
+
                     <div className="mt-4">
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div 
@@ -483,7 +534,7 @@ function HostDashboard() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="border-t border-gray-100 px-5 py-3 bg-gray-50 flex justify-between">
                     <button 
                       className="text-sm font-medium text-green-600 hover:text-green-700 flex items-center"
