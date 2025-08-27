@@ -11,6 +11,7 @@ import HostDashboard from './HostDashboard';
 import CreateEvent from './CreateEvent';
 import AuthRedirectHandler from './components/AuthRedirectHandler';
 import AuthCallback from './components/AuthCallback';
+import Register from './Register';
 
 // Create the router configuration
 const router = createBrowserRouter([
@@ -37,6 +38,9 @@ const router = createBrowserRouter([
   {
     path: '/auth-redirect',
     element: <AuthRedirectHandler />,
+  },
+  {path: "/register/:eventId",
+    element: <Register />,
   },
   {
     path: '/auth-callback',

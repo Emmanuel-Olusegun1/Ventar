@@ -1,14 +1,36 @@
+// App.jsx
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine, FaRegCheckCircle, FaHeadset, FaTimes, FaBars } from 'react-icons/fa'
-import { IoRibbonOutline } from 'react-icons/io5'
-import { BsArrowRight, BsLightningFill } from 'react-icons/bs'
+import { FaCalendarAlt, FaTicketAlt, FaUsers, FaChartLine, FaRegCheckCircle, FaHeadset, FaTimes, FaBars } from 'react-icons/fa';
+import { IoRibbonOutline } from 'react-icons/io5';
+import { BsArrowRight, BsLightningFill } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [eventLink, setEventLink] = useState('');
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleJoinEvent = () => {
+    // Parse eventId from input (supports full URL or raw UUID)
+    let eventId = eventLink;
+    
+    // Extract UUID from URL formats like https://ventar.com/register/UUID or https://ventar.com/event_id=UUID
+    const urlMatch = eventLink.match(/\/register\/([0-9a-f-]+)$/i) || eventLink.match(/event_id=([0-9a-f-]+)$/i);
+    if (urlMatch) {
+      eventId = urlMatch[1];
+    } else if (!/^[0-9a-f-]{36}$/i.test(eventId)) {
+      setError('Invalid event link or ID. Please enter a valid UUID or event URL.');
+      return;
+    }
+
+    setError(null);
+    navigate(`/register/${eventId}`);
   };
 
   return (
@@ -22,14 +44,11 @@ function App() {
         >
           Ventar
         </motion.div>
-       {/* Desktop Navigation */}
-       <div className="hidden md:flex gap-6">
+        <div className="hidden md:flex gap-6">
           <a href="/host-signup" className="text-gray-700 hover:text-green-600 font-medium">Host Sign-Up</a>
           <a href="/host-login" className="text-gray-700 hover:text-green-600 font-medium">Host Login</a>
           <a href="#join" className="text-gray-700 hover:text-green-600 font-medium">Join Event</a>
         </div>
-        
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden text-gray-700 focus:outline-none"
           onClick={toggleMobileMenu}
@@ -42,7 +61,6 @@ function App() {
         </button>
       </nav>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -200,15 +218,22 @@ function App() {
             className="bg-white p-8 md:p-10 rounded-xl shadow-sm border border-gray-200"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Join an Event</h2>
-            <p className="text-gray-600 mb-6 text-center">Enter your event link below to get started</p>
-            
+            <p className="text-gray-600 mb-6 text-center">Enter your event link or ID to get started</p>
+            {error && (
+              <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+            )}
             <div className="flex flex-col sm:flex-row gap-4">
               <input 
                 type="text" 
-                placeholder="Enter event link (e.g., https://ventar.com/event_id=UUID)" 
+                placeholder="Enter event link or ID (e.g., https://ventar.com/register/UUID or UUID)"
+                value={eventLink}
+                onChange={(e) => setEventLink(e.target.value)}
                 className="flex-grow px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
-              <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              <button 
+                onClick={handleJoinEvent}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
                 Join Now
               </button>
             </div>
@@ -313,7 +338,7 @@ function App() {
               href="/how" 
               className="bg-transparent border border-white text-white hover:bg-green-700 px-8 py-3 rounded-lg font-medium transition-colors"
             >
-            How It Works
+              How It Works
             </a>
           </motion.div>
         </div>
@@ -354,13 +379,12 @@ function App() {
           </div>
           <div className="pt-8 border-t border-gray-800 text-center">
             <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
-            <p> Powered By <a href="https://algoritic.com.ng" hover:text-green-600>Algoritic Inc</a></p>
+            <p>Powered By <a href="https://algoritic.com.ng" className="hover:text-green-600">Algoritic Inc</a></p>
           </div>
         </div>
-     
       </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
