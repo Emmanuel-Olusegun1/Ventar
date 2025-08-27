@@ -15,7 +15,7 @@ import {
 } from 'react-icons/fa';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './supabaseClient';
+import { supabase, setupAuthListener, getValidSession } from './supabaseClient';
 
 function HostDashboard() {
   const navigate = useNavigate();
@@ -32,83 +32,157 @@ function HostDashboard() {
   const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [user, setUser] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  // Check session on component mount
+  // Monitor localStorage changes to detect interference
   useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === 'ventar-sb-auth-token') {
+        console.warn('ventar-sb-auth-token modified:', event.newValue);
+        setErrorMessage('Session token was modified. Please refresh the page.');
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Warn about potential extension conflicts
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+      console.warn('Potential extension conflict detected. Try disabling extensions if issues persist.');
+      setErrorMessage('Some browser extensions may interfere with the dashboard. Try disabling them if issues persist.');
+    }
+  }, []);
+
+  // Check session and set up auth listener on component mount
+  useEffect(() => {
+    console.log('HostDashboard mounted');
+    let isMounted = true;
+
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
+      const session = await getValidSession();
+      if (!isMounted) return;
+      if (!session) {
+        console.log('No valid session, redirecting to login');
         navigate('/login');
       } else {
+        console.log('Session valid, user ID:', session.user.id);
         setUser(session.user);
       }
     };
 
     checkSession();
-  }, [navigate]);
 
-  // Listen for auth state changes
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const unsubscribe = setupAuthListener((event, session) => {
+      console.log('Auth event in HostDashboard:', event, session?.user?.id);
+      if (!isMounted) return;
       if (event === 'SIGNED_OUT') {
-        localStorage.removeItem('sb-auth-token');
-        localStorage.removeItem('sb-user-data');
+        localStorage.removeItem('ventar-sb-auth-token');
+        localStorage.removeItem('ventar-sb-user-data');
         navigate('/login');
-      }
-      
-      if (session) {
+      } else if (session) {
         setUser(session.user);
       }
     });
 
     return () => {
-      authListener?.subscription?.unsubscribe();
+      console.log('HostDashboard unmounted');
+      isMounted = false;
+      unsubscribe();
     };
   }, [navigate]);
 
   // Fetch events when user is available
   useEffect(() => {
-    const fetchEvents = async () => {
-      if (!user) return;
-      
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+    const fetchEvents = async (retries = 3, delay = 1000) => {
+      if (!user) {
+        console.log('No user, skipping fetchEvents');
+        return;
+      }
 
-        if (error) throw error;
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          setLoading(true);
+          setErrorMessage(null);
+          console.log(`Fetching events for user ID: ${user.id} (Attempt ${attempt}/${retries})`);
 
-        const formattedEvents = data.map(event => ({
-          ...event,
-          date: new Date(event.date).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-          })
-        }));
+          let query = supabase
+            .from('events')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        setEvents(formattedEvents);
-        setFilteredEvents(formattedEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
+          // Try with host_id filter first
+          query = query.eq('host_id', user.id);
+
+          let { data, error } = await query;
+
+          if (error) {
+            console.error('Error fetching events with host_id:', error);
+            if (error.message.includes('column events.host_id does not exist')) {
+              console.log('host_id column missing, trying without filter');
+              // Fallback query without host_id filter (for debugging or no RLS)
+              ({ data, error } = await supabase
+                .from('events')
+                .select('*')
+                .order('created_at', { ascending: false }));
+              if (error) {
+                console.error('Error fetching events without host_id:', error);
+                setErrorMessage('Database error: Unable to fetch events. Please check the table schema or contact support.');
+                return;
+              }
+              setErrorMessage('Warning: host_id column missing in events table. Showing all events (check RLS policies).');
+            } else if (error.code === 'PGRST301') {
+              setErrorMessage('Authentication error: Please log in again.');
+              navigate('/login');
+              return;
+            } else if (error.code === 'PGRST116') {
+              setErrorMessage('No events found for your account.');
+              return;
+            } else if (attempt === retries) {
+              setErrorMessage(`Failed to load events: ${error.message || 'Unknown error'}.`);
+              return;
+            }
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+
+          console.log('Events fetched:', data);
+
+          const formattedEvents = data.map(event => {
+            const eventDate = new Date(event.date);
+            return {
+              ...event,
+              date: isNaN(eventDate) ? 'Invalid Date' : eventDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              })
+            };
+          });
+
+          setEvents(formattedEvents);
+          setFilteredEvents(formattedEvents);
+          return;
+        } catch (error) {
+          console.error('Unexpected error fetching events:', error);
+          if (attempt === retries) {
+            setErrorMessage('An unexpected error occurred while loading events. Please refresh the page.');
+          }
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
     fetchEvents();
-  }, [user]);
+  }, [user, navigate]);
 
   // Filter events based on search query
   useEffect(() => {
     const filtered = events.filter(event =>
-      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.status.toLowerCase().includes(searchQuery.toLowerCase())
+      event.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.date?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.status?.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredEvents(filtered);
   }, [searchQuery, events]);
@@ -145,13 +219,13 @@ function HostDashboard() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      localStorage.removeItem('sb-auth-token');
-      localStorage.removeItem('sb-user-data');
+      localStorage.removeItem('ventar-sb-auth-token');
+      localStorage.removeItem('ventar-sb-user-data');
       
-      navigate('/login');
+      navigate('/host-login');
     } catch (error) {
       console.error('Error signing out:', error);
-      alert('Error signing out. Please try again.');
+      setErrorMessage('Error signing out. Please try again.');
     }
   };
 
@@ -206,6 +280,19 @@ function HostDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Error Message Display */}
+      {errorMessage && (
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mx-4 mb-4 rounded">
+          <p>{errorMessage}</p>
+          <button
+            className="text-sm text-red-600 hover:text-red-800 mt-2"
+            onClick={() => setErrorMessage(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Glassmorphism Navigation */}
       <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-3 flex justify-between items-center">
@@ -374,7 +461,7 @@ function HostDashboard() {
         </div>
 
         {/* Welcome Message for New Users */}
-        {events.length === 0 && !searchQuery && (
+        {events.length === 0 && !searchQuery && !errorMessage && (
           <div className="bg-white rounded-xl border border-gray-100 p-8 text-center mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to Ventar!</h2>
             <p className="text-gray-500 mb-4">It looks like you're new here. Start by creating your first event to engage your audience.</p>
@@ -494,7 +581,7 @@ function HostDashboard() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">{event.name}</h3>
-                          <p className="text-sm text-gray-500">#{event.workshop_number}</p>
+                          <p className="text-sm text-gray-500">#{event.workshop_number || 'N/A'}</p>
                         </div>
                       </div>
                       <button className="text-gray-400 hover:text-gray-600">
@@ -529,7 +616,7 @@ function HostDashboard() {
                           event.status === 'upcoming' ? 'text-blue-600' :
                           'text-gray-500'
                         }`}>
-                          {event.status?.charAt(0)?.toUpperCase() + event.status?.slice(1)}
+                          {event.status?.charAt(0)?.toUpperCase() + event.status?.slice(1) || 'N/A'}
                         </span>
                       </div>
                     </div>

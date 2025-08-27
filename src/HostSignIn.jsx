@@ -17,6 +17,7 @@ function HostSignIn() {
   const [showResetForm, setShowResetForm] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [hasError, setHasError] = useState(false);
 
   // Load remembered email if exists
   useEffect(() => {
@@ -41,6 +42,21 @@ function HostSignIn() {
       return () => clearTimeout(timer);
     }
   }, [successMessage, navigate]);
+
+  // Add auth state listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session);
+      }
+    );
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -68,24 +84,29 @@ function HostSignIn() {
     setIsLoading(true);
     setErrors({});
     setSuccessMessage('');
+    setHasError(false);
     console.log('Starting sign-in process');
 
     try {
-      // Clear any existing session
-      console.log('Clearing existing session');
-      await supabase.auth.signOut();
-      localStorage.removeItem('supabase.auth.token');
-
-      // Sign in with Supabase
-      const { data: { user, session }, error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting sign-in with:', formData.email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      console.log('Supabase sign-in response:', { user, session, error });
+      console.log('Supabase sign-in response:', { data, error });
 
-      if (error) throw error;
-      if (!user) throw new Error('No user data returned');
+      if (error) {
+        console.error('Detailed error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
+        throw error;
+      }
+
+      if (!data.user) throw new Error('No user data returned');
 
       // Store email if remember me is checked
       if (formData.rememberMe) {
@@ -101,7 +122,8 @@ function HostSignIn() {
       setSuccessMessage('Sign-in successful! Redirecting to dashboard...');
 
     } catch (error) {
-      console.error('Sign-in error:', error);
+      console.error('Complete sign-in error:', error);
+      setHasError(true);
       setErrors({
         form: error.message || 'Invalid email or password. Please try again.'
       });
@@ -120,6 +142,7 @@ function HostSignIn() {
 
     setIsLoading(true);
     setErrors({});
+    setHasError(false);
     console.log('Starting password reset process');
 
     try {
@@ -129,12 +152,16 @@ function HostSignIn() {
 
       console.log('Password reset response:', { error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Detailed reset error:', error);
+        throw error;
+      }
 
       console.log('Setting resetEmailSent to true');
       setResetEmailSent(true);
     } catch (error) {
-      console.error('Password reset error:', error);
+      console.error('Complete password reset error:', error);
+      setHasError(true);
       setErrors({
         form: error.message || 'Failed to send reset email. Please try again.'
       });
@@ -143,6 +170,23 @@ function HostSignIn() {
       console.log('Password reset process completed, isLoading:', false);
     }
   };
+
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h2>
+          <p className="text-gray-600 mb-4">Please try signing in again</p>
+          <button 
+            onClick={() => setHasError(false)}
+            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -268,7 +312,7 @@ function HostSignIn() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -285,8 +329,9 @@ function HostSignIn() {
                 onClick={() => {
                   setShowResetForm(false);
                   setErrors({});
+                  setResetEmail('');
                 }}
-                className="w-full text-gray-600 hover:text-gray-800 font-medium"
+                className="w-full text-gray-600 hover:text-gray-800 font-medium text-center"
               >
                 Back to Sign In
               </button>
@@ -369,7 +414,7 @@ function HostSignIn() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
