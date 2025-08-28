@@ -6,7 +6,12 @@ import {
   FaChartPie, 
   FaPlus,
   FaArrowLeft,
-  FaTicketAlt
+  FaTicketAlt,
+  FaTag,
+  FaCog,
+  FaEye,
+  FaCheckCircle,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -24,6 +29,7 @@ function CreateEvent() {
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [activeSection, setActiveSection] = useState('details');
+  const [success, setSuccess] = useState(false);
 
   // Check session on mount
   useEffect(() => {
@@ -53,11 +59,11 @@ function CreateEvent() {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!eventData.name.trim()) newErrors.name = 'Event name is required';
     if (!eventData.date) newErrors.date = 'Date is required';
     if (!eventData.capacity || eventData.capacity <= 0) newErrors.capacity = 'Capacity must be positive';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -65,7 +71,7 @@ function CreateEvent() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -101,12 +107,15 @@ function CreateEvent() {
       if (error) throw error;
       if (!data || data.length === 0) throw new Error('No data returned from server');
 
-      // Clear localStorage to prevent token issues
-      console.log('Clearing supabase.auth.token from localStorage');
-      localStorage.removeItem('supabase.auth.token');
+      setSuccess(true);
+      setTimeout(() => {
+        // Clear localStorage to prevent token issues
+        console.log('Clearing supabase.auth.token from localStorage');
+        localStorage.removeItem('supabase.auth.token');
 
-      console.log('Redirecting to /host-dashboard');
-      navigate('/host-dashboard', { replace: true });
+        console.log('Redirecting to /host-dashboard');
+        navigate('/host-dashboard', { replace: true });
+      }, 2000);
     } catch (error) {
       console.error('Error creating event:', error);
       setSubmitError(error.message || 'Failed to create event. Please try again.');
@@ -116,24 +125,64 @@ function CreateEvent() {
     }
   };
 
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-8 shadow-sm text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6"
+          >
+            <FaCheckCircle className="h-8 w-8 text-emerald-600" />
+          </motion.div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Event Created Successfully!</h1>
+          <p className="text-gray-600 mb-6">Your event has been created and is now ready for registrations.</p>
+          <div className="bg-gray-50 rounded-xl p-4 mb-6">
+            <p className="text-emerald-600 font-semibold">{eventData.name} {eventData.workshopNumber && `#${eventData.workshopNumber}`}</p>
+            <p className="text-gray-500 text-sm mt-1">
+              {new Date(eventData.date).toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+              })}
+            </p>
+          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-gray-500 text-sm"
+          >
+            Redirecting to dashboard...
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Glassmorphism Navigation */}
       <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center text-gray-700 hover:text-gray-900"
-              onClick={() => navigate(-1)}
-            >
-              <FaArrowLeft className="mr-2" />
-              Back to Dashboard
-            </motion.button>
-          </div>
-          <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent">
-            Event Manager
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center text-gray-700 hover:text-gray-900 font-medium"
+            onClick={() => navigate(-1)}
+          >
+            <FaArrowLeft className="mr-2" />
+            Back
+          </motion.button>
+          <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+            Create Event
           </div>
           <div className="w-24"></div>
         </div>
@@ -141,34 +190,79 @@ function CreateEvent() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-6 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 max-w-6xl mx-auto">
           {/* Sidebar Navigation */}
-          <div className="lg:w-64">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-6 sticky top-24">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">Create New Event</h2>
+          <div className="lg:w-72">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-xs p-6 sticky top-24">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Event Setup</h2>
               <nav className="space-y-2">
-                <button
+                <motion.button
+                  whileHover={{ x: 4 }}
                   onClick={() => setActiveSection('details')}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center ${activeSection === 'details' ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center ${
+                    activeSection === 'details' 
+                      ? 'bg-emerald-50 text-emerald-700 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
                 >
-                  <FaTicketAlt className="mr-3" />
+                  <FaTicketAlt className={`mr-3 ${activeSection === 'details' ? 'text-emerald-600' : 'text-gray-400'}`} />
                   Event Details
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ x: 4 }}
                   onClick={() => setActiveSection('settings')}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center ${activeSection === 'settings' ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center ${
+                    activeSection === 'settings' 
+                      ? 'bg-emerald-50 text-emerald-700 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
                 >
-                  <FaCalendarAlt className="mr-3" />
+                  <FaCog className={`mr-3 ${activeSection === 'settings' ? 'text-emerald-600' : 'text-gray-400'}`} />
                   Date & Capacity
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ x: 4 }}
                   onClick={() => setActiveSection('preview')}
-                  className={`w-full text-left px-4 py-2 rounded-lg flex items-center ${activeSection === 'preview' ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center ${
+                    activeSection === 'preview' 
+                      ? 'bg-emerald-50 text-emerald-700 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
                 >
-                  <FaChartPie className="mr-3" />
+                  <FaEye className={`mr-3 ${activeSection === 'preview' ? 'text-emerald-600' : 'text-gray-400'}`} />
                   Preview
-                </button>
+                </motion.button>
               </nav>
+              
+              <div className="mt-8 pt-6 border-t border-gray-100">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Progress</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-2 ${
+                      eventData.name ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {eventData.name ? <FaCheckCircle className="w-3 h-3" /> : '1'}
+                    </div>
+                    <span className={eventData.name ? 'text-emerald-700' : 'text-gray-600'}>Event Name</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-2 ${
+                      eventData.date ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {eventData.date ? <FaCheckCircle className="w-3 h-3" /> : '2'}
+                    </div>
+                    <span className={eventData.date ? 'text-emerald-700' : 'text-gray-600'}>Date Set</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center mr-2 ${
+                      eventData.capacity ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {eventData.capacity ? <FaCheckCircle className="w-3 h-3" /> : '3'}
+                    </div>
+                    <span className={eventData.capacity ? 'text-emerald-700' : 'text-gray-600'}>Capacity</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -177,28 +271,24 @@ function CreateEvent() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden"
+              className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden"
             >
               {/* Form Header */}
-              <div className="border-b border-gray-100 p-6">
-                <h1 className="text-2xl font-bold text-gray-900">New Event Setup</h1>
+              <div className="border-b border-gray-100 p-6 bg-gradient-to-r from-gray-50 to-white">
+                <h1 className="text-2xl font-bold text-gray-900">Create New Event</h1>
                 <p className="text-gray-500 mt-1">Fill in your event details below</p>
               </div>
 
               {/* Error Message */}
               {submitError && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-6 mt-6 rounded-lg">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 0 101.414 1.414L10 11.414l1.293 1.293a1 0 001.414-1.414L11.414 10l1.293-1.293a1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-red-700">{submitError}</p>
-                    </div>
-                  </div>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="bg-red-50 border-l-4 border-red-500 p-4 mx-6 mt-6 rounded-lg flex items-start"
+                >
+                  <FaExclamationTriangle className="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <p className="text-red-700 text-sm">{submitError}</p>
+                </motion.div>
               )}
 
               <form onSubmit={handleSubmit} className="p-6">
@@ -213,12 +303,12 @@ function CreateEvent() {
                     >
                       <div className="mb-8">
                         <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
-                          <FaTicketAlt className="mr-2 text-green-500" />
+                          <FaTicketAlt className="mr-3 text-emerald-600" />
                           Event Information
                         </h3>
                         <div className="space-y-6">
                           <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                               Event Name <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -227,26 +317,33 @@ function CreateEvent() {
                               name="name"
                               value={eventData.name}
                               onChange={handleInputChange}
-                              className={`w-full px-4 py-2.5 border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                              placeholder="Tech Conference"
+                              className={`w-full px-4 py-3 border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200`}
+                              placeholder="Tech Conference 2024"
                             />
-                            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+                            {errors.name && <p className="mt-2 text-sm text-red-500 flex items-center">
+                              <FaExclamationTriangle className="mr-1 w-3 h-3" /> {errors.name}
+                            </p>}
                           </div>
 
                           <div>
-                            <label htmlFor="workshopNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="workshopNumber" className="block text-sm font-medium text-gray-700 mb-2">
                               Workshop/Event Number (optional)
                             </label>
-                            <input
-                              type="number"
-                              id="workshopNumber"
-                              name="workshopNumber"
-                              min="1"
-                              value={eventData.workshopNumber}
-                              onChange={handleInputChange}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                              placeholder="e.g. 2 for Workshop #2"
-                            />
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <FaTag className="h-5 w-5 text-gray-400" />
+                              </div>
+                              <input
+                                type="number"
+                                id="workshopNumber"
+                                name="workshopNumber"
+                                min="1"
+                                value={eventData.workshopNumber}
+                                onChange={handleInputChange}
+                                className="pl-10 w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200"
+                                placeholder="e.g. 2 for Workshop #2"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -263,12 +360,12 @@ function CreateEvent() {
                     >
                       <div className="mb-8">
                         <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
-                          <FaCalendarAlt className="mr-2 text-blue-500" />
+                          <FaCog className="mr-3 text-blue-500" />
                           Event Settings
                         </h3>
                         <div className="space-y-6">
                           <div>
-                            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
                               Date <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -282,14 +379,16 @@ function CreateEvent() {
                                 value={eventData.date}
                                 onChange={handleInputChange}
                                 min={new Date().toISOString().split('T')[0]}
-                                className={`pl-10 w-full px-4 py-2.5 border ${errors.date ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                                className={`pl-10 w-full px-4 py-3 border ${errors.date ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200`}
                               />
                             </div>
-                            {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
+                            {errors.date && <p className="mt-2 text-sm text-red-500 flex items-center">
+                              <FaExclamationTriangle className="mr-1 w-3 h-3" /> {errors.date}
+                            </p>}
                           </div>
 
                           <div>
-                            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-2">
                               Total Capacity <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -303,14 +402,16 @@ function CreateEvent() {
                                 min="1"
                                 value={eventData.capacity}
                                 onChange={handleInputChange}
-                                className={`pl-10 w-full px-4 py-2.5 border ${errors.capacity ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                                className={`pl-10 w-full px-4 py-3 border ${errors.capacity ? 'border-red-500' : 'border-gray-200'} rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200`}
                               />
                             </div>
-                            {errors.capacity && <p className="mt-1 text-sm text-red-500">{errors.capacity}</p>}
+                            {errors.capacity && <p className="mt-2 text-sm text-red-500 flex items-center">
+                              <FaExclamationTriangle className="mr-1 w-3 h-3" /> {errors.capacity}
+                            </p>}
                           </div>
 
                           <div>
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
                               Event Status
                             </label>
                             <select
@@ -318,7 +419,7 @@ function CreateEvent() {
                               name="status"
                               value={eventData.status}
                               onChange={handleInputChange}
-                              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200"
                             >
                               <option value="upcoming">Upcoming</option>
                               <option value="active">Active</option>
@@ -340,51 +441,47 @@ function CreateEvent() {
                     >
                       <div className="mb-8">
                         <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center">
-                          <FaChartPie className="mr-2 text-purple-500" />
+                          <FaEye className="mr-3 text-purple-500" />
                           Event Preview
                         </h3>
-                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                          <div className="space-y-4">
+                        <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl border border-gray-200">
+                          <div className="space-y-5">
                             <div>
                               <h4 className="text-xl font-bold text-gray-900">
                                 {eventData.name || "Untitled Event"} {eventData.workshopNumber && `#${eventData.workshopNumber}`}
                               </h4>
                             </div>
-                            
+
                             {eventData.date && (
-                              <div>
-                                <p className="text-sm font-medium text-gray-500">Date</p>
-                                <p className="text-md text-gray-900">
+                              <div className="flex items-center text-gray-600">
+                                <FaCalendarAlt className="mr-2 text-emerald-500" />
+                                <span>
                                   {new Date(eventData.date).toLocaleDateString('en-US', { 
                                     weekday: 'long', 
                                     month: 'long', 
                                     day: 'numeric', 
                                     year: 'numeric' 
                                   })}
-                                </p>
+                                </span>
                               </div>
                             )}
-                            
-                            <div>
-                              <p className="text-sm font-medium text-gray-500">Registrations</p>
-                              <div className="flex items-center space-x-4">
-                                <p className="text-md text-gray-900">
-                                  0/{eventData.capacity}
-                                </p>
-                                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-green-500 h-2 rounded-full" 
-                                    style={{ width: '0%' }}
-                                  ></div>
-                                </div>
-                                <span className="text-sm text-gray-500">0%</span>
+
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Registrations</span>
+                                <span className="font-medium">0/{eventData.capacity}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-2 rounded-full transition-all duration-500" 
+                                  style={{ width: '0%' }}
+                                ></div>
                               </div>
                             </div>
-                            
+
                             <div>
-                              <p className="text-sm font-medium text-gray-500">Status</p>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                eventData.status === 'active' ? 'bg-green-100 text-green-800' :
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                                eventData.status === 'active' ? 'bg-emerald-100 text-emerald-800' :
                                 eventData.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
@@ -400,44 +497,39 @@ function CreateEvent() {
 
                 {/* Navigation and Submit */}
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-100">
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setActiveSection('details')}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${activeSection === 'details' ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                      Details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveSection('settings')}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${activeSection === 'settings' ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                      Settings
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveSection('preview')}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${activeSection === 'preview' ? 'bg-green-50 text-green-600' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                      Preview
-                    </button>
+                  <div className="flex space-x-2">
+                    {['details', 'settings', 'preview'].map((section) => (
+                      <button
+                        key={section}
+                        type="button"
+                        onClick={() => setActiveSection(section)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          activeSection === section 
+                            ? 'bg-emerald-100 text-emerald-700 shadow-xs' 
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {section.charAt(0).toUpperCase() + section.slice(1)}
+                      </button>
+                    ))}
                   </div>
 
                   <div className="flex space-x-3 w-full sm:w-auto">
-                    <button 
+                    <motion.button 
                       type="button"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => navigate(-1)}
-                      className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="w-full sm:w-auto px-5 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
                     >
                       Cancel
-                    </button>
+                    </motion.button>
                     <motion.button
                       type="submit"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       disabled={loading}
-                      className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white rounded-lg text-sm font-medium shadow-sm flex items-center justify-center"
+                      className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white rounded-xl text-sm font-medium shadow-sm flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <>
