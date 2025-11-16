@@ -34,23 +34,24 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#000000] text-[#e5e5e5]">
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-2xl font-bold text-green-700"
+          className="text-2xl font-bold "
         >
           Ventar
         </motion.div>
         <div className="hidden md:flex gap-6">
-          <a href="/host-signup" className="text-gray-700 hover:text-green-600 font-medium">Host Sign-Up</a>
-          <a href="/host-login" className="text-gray-700 hover:text-green-600 font-medium">Host Login</a>
-          <a href="#join" className="text-gray-700 hover:text-green-600 font-medium">Join Event</a>
+          <a href="/host-signup" className="hover:text-[#34c239] font-medium">Host Sign-Up</a>
+          <a href="/host-login" className="hover:text-[#34c239] font-medium">Host Login</a>
+          <a href="#join" className="hover:text-[#34c239] font-medium">Join Event</a>
         </div>
         <button 
-          className="md:hidden text-gray-700 focus:outline-none"
+          className="md:hidden text-[#34c239] hover:text-[#34c239] hover:cursor-pointer
+          focus:outline-none"
           onClick={toggleMobileMenu}
         >
           {mobileMenuOpen ? (
@@ -68,26 +69,26 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg z-50"
+            className="md:hidden absolute top-16 left-0 right-0 bg-[#000f07] shadow-lg z-50"
           >
             <div className="flex flex-col px-6 py-4 space-y-4">
               <a 
                 href="/host-signup" 
-                className="text-gray-700 hover:text-green-600 font-medium py-2 border-b border-gray-100"
+                className="text-gray-400 hover:text-green-600 font-medium py-2 border-b border-[#00220b]"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Host Sign-Up
               </a>
               <a 
                 href="/host-login" 
-                className="text-gray-700 hover:text-green-600 font-medium py-2 border-b border-gray-100"
+                className="text-gray-400 hover:text-green-600 font-medium py-2 border-b border-[#00220b]"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Host Login
               </a>
               <a 
                 href="#join" 
-                className="text-gray-700 hover:text-green-600 font-medium py-2"
+                className="text-gray-400 hover:text-green-600 font-medium py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Join Event
@@ -102,15 +103,15 @@ function App() {
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-6xl font-bold text-gray-900 mb-6"
+          className="text-4xl md:text-6xl font-bold  mb-6"
         >
-          Welcome to <span className="text-green-600">Ventar</span>
+          Welcome to <span className="text-[#34c239]">Ventar</span>
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10"
+          className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-10"
         >
           Create unforgettable events and connect with your community. The most intuitive event platform for modern organizers.
         </motion.p>
@@ -122,13 +123,13 @@ function App() {
         >
           <a 
             href="#join" 
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+            className="bg-[#002009] hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
             Join an Event <BsArrowRight />
           </a>
           <a 
             href="/host-signup" 
-            className="bg-white border border-green-600 text-green-600 hover:bg-green-50 px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+            className="bg-white border border-green-600 text-[#002009] hover:bg-green-50 px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
             Become a Host <BsLightningFill />
           </a>
@@ -136,7 +137,7 @@ function App() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-green-50 py-16">
+      <section className="bg-[#00220b] py-16">
         <div className="container mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { value: "10K+", label: "Events Created" },
@@ -151,8 +152,8 @@ function App() {
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <div className="text-3xl md:text-4xl font-bold text-green-700 mb-2">{stat.value}</div>
-              <div className="text-gray-600">{stat.label}</div>
+              <div className="text-3xl md:text-4xl font-bold text-[#d4d4d4] mb-2">{stat.value}</div>
+              <div className="text-[#fafafa]">{stat.label}</div>
             </motion.div>
           ))}
         </div>
@@ -166,8 +167,8 @@ function App() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Ventar?</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#d4d4d4] mb-4">Why Choose Ventar?</h2>
+          <p className="text-xl text-[#fafafa] max-w-3xl mx-auto">
             Experience the perfect blend of simplicity and power with our cutting-edge event management platform
           </p>
         </motion.div>
@@ -175,17 +176,17 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              icon: <FaCalendarAlt className="text-2xl text-green-600" />,
+              icon: <FaCalendarAlt className="text-2xl" />,
               title: "Easy Events",
               description: "Create stunning events and share them with beautiful, personalized links that engage your audience."
             },
             {
-              icon: <FaTicketAlt className="text-2xl text-green-600" />,
+              icon: <FaTicketAlt className="text-2xl" />,
               title: "Simple Registration",
               description: "Join events instantly with one click. No complicated forms or lengthy signup processes required."
             },
             {
-              icon: <FaChartLine className="text-2xl text-green-600" />,
+              icon: <FaChartLine className="text-2xl" />,
               title: "Smart Management",
               description: "Track attendance, analyze engagement, and manage your events with powerful real-time dashboards."
             }
@@ -196,29 +197,29 @@ function App() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100"
+              className="bg-[#002009] p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-6">
+              <div className="w-12 h-12 bg-[#00331a] rounded-full flex items-center justify-center mb-6">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <h3 className="text-xl font-bold text-[#d4d4d4] mb-3">{feature.title}</h3>
+              <p className="text-[#fafafa]">{feature.description}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* Join Event Section */}
-      <section className="bg-gray-50 py-20" id='join'>
+      <section className="bg-[#000f07] py-20" id='join'>
         <div className="container mx-auto px-6 max-w-3xl">
           <motion.div 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="bg-white p-8 md:p-10 rounded-xl shadow-sm border border-gray-200"
+            className="bg-[#002009] p-8 md:p-10 rounded-xl shadow-lg border border-green-900"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Join an Event</h2>
-            <p className="text-gray-600 mb-6 text-center">Enter your event link or ID to get started</p>
+            <h2 className="text-2xl font-bold text-[#d4d4d4] mb-6 text-center">Join an Event</h2>
+            <p className="text-[#fafafa] mb-6 text-center">Enter your event link or ID to get started</p>
             {error && (
               <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
             )}
@@ -227,12 +228,12 @@ function App() {
                 type="text" 
                 placeholder="Enter event link or ID (e.g., https://ventar.com/register/UUID or UUID)"
                 value={eventLink}
-                onChange={(e) => setEventLink(e.target.value)}
-                className="flex-grow px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                onChange={(e) => { setEventLink(e.target.value); setError(null); }}
+                className="flex-grow px-4 py-3 bg-[#000f07] border border-green-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-200 placeholder-gray-500"
               />
               <button 
                 onClick={handleJoinEvent}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="bg-[#34c239] hover:cursor-pointer hover:bg-green-500 text-[#d4d4d4] px-6 py-3 rounded-lg font-medium transition-colors"
               >
                 Join Now
               </button>
@@ -248,9 +249,9 @@ function App() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Trusted by Event Organizers</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        > 
+          <h2 className="text-3xl md:text-4xl font-bold text-[#d4d4d4] mb-4">Trusted by Event Organizers</h2>
+          <p className="text-xl text-[#fafafa] max-w-3xl mx-auto">
             See what our community has to say about Ventar
           </p>
         </motion.div>
@@ -279,20 +280,13 @@ function App() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white p-8 rounded-xl shadow-sm border border-gray-100"
+              className="bg-[#002009] p-8 rounded-xl shadow-sm border border-green-900"
             >
-              <div className="flex mb-4 text-yellow-400">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-700 italic mb-6">"{testimonial.quote}"</p>
+             
+              <p className="text-gray-300 italic mb-6">"{testimonial.quote}"</p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-green-100 rounded-full mr-4"></div>
                 <div>
-                  <div className="font-bold text-gray-900">{testimonial.author}</div>
+                  <div className="font-bold text-gray-200">{testimonial.author}</div>
                   <div className="text-green-600">{testimonial.role}</div>
                 </div>
               </div>
@@ -302,7 +296,7 @@ function App() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-green-600 text-white py-20">
+      <section className="bg-[#00220b] text-white py-20">
         <div className="container mx-auto px-6 text-center">
           <motion.h2 
             initial={{ opacity: 0 }}
@@ -330,13 +324,13 @@ function App() {
           >
             <a 
               href="/host-signup" 
-              className="bg-white text-green-700 hover:bg-gray-100 px-8 py-3 rounded-lg font-medium transition-colors"
+              className="bg-green-600 text-white hover:bg-green-700 px-8 py-3 rounded-lg font-medium transition-colors"
             >
               Start Free
             </a>
             <a 
               href="/how" 
-              className="bg-transparent border border-white text-white hover:bg-green-700 px-8 py-3 rounded-lg font-medium transition-colors"
+              className="bg-transparent border border-green-600 text-white hover:bg-green-900/50 px-8 py-3 rounded-lg font-medium transition-colors"
             >
               How It Works
             </a>
@@ -345,10 +339,10 @@ function App() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
+      <footer className="bg-black text-gray-400 py-12">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-8 mb-8">
+            <div className='col-span-3 md:col-span-1'>
               <div className="text-2xl font-bold text-white mb-4">Ventar</div>
               <p className="mb-4">The complete event management platform for modern organizers.</p>
             </div>
@@ -377,7 +371,7 @@ function App() {
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-gray-800 text-center">
+          <div className="pt-8 border-t border-gray-700 text-center text-sm">
             <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
             <p>Powered By <a href="https://algoritic.com.ng" className="hover:text-green-600">Algoritic Inc</a></p>
           </div>
