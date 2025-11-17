@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaArrowRight, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -173,13 +172,13 @@ function HostSignIn() {
 
   if (hasError) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] text-[#e5e5e5] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h2>
-          <p className="text-gray-600 mb-4">Please try signing in again</p>
+          <h2 className="text-2xl font-bold text-[#d4d4d4] mb-4">Something went wrong</h2>
+          <p className="text-gray-300 mb-4">Please try signing in again</p>
           <button 
             onClick={() => setHasError(false)}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+            className="bg-[#34c239] text-black px-6 py-3 hover:cursor-pointer rounded-lg font-medium hover:bg-green-500 transition-colors"
           >
             Try Again
           </button>
@@ -189,17 +188,17 @@ function HostSignIn() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#000000] text-[#e5e5e5]">
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center text-gray-700 hover:text-green-600">
+          <Link to="/" className="flex items-center text-gray-300 hover:text-[#34c239] transition-colors">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Home
           </Link>
-          <Link to="/host-signup" className="text-gray-700 hover:text-green-600 font-medium">
+          <Link to="/host-signup" className="text-gray-300 hover:text-[#34c239] font-medium transition-colors">
             Create Account
           </Link>
         </div>
@@ -212,7 +211,7 @@ function HostSignIn() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full mb-6"
+            className="inline-flex items-center gap-2 bg-[#002009] text-[#34c239] px-4 py-2 rounded-full mb-6 border border-[#00331a]"
           >
             <span className="font-medium">
               {showResetForm ? 'Reset Password' : 'Welcome back!'}
@@ -223,7 +222,7 @@ function HostSignIn() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+            className="text-3xl md:text-4xl font-bold text-[#d4d4d4] mb-4"
           >
             {showResetForm ? 'Forgot Password' : 'Host Sign In'}
           </motion.h1>
@@ -232,7 +231,7 @@ function HostSignIn() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-gray-600"
+            className="text-gray-300"
           >
             {showResetForm 
               ? 'Enter your email to receive a password reset link' 
@@ -244,13 +243,13 @@ function HostSignIn() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-green-50 border border-green-200 rounded-lg p-6 text-center mb-6"
+            className="bg-[#002009] border border-green-900 rounded-lg p-6 text-center mb-6"
           >
-            <h3 className="text-lg font-medium text-green-800 mb-2 flex items-center justify-center">
+            <h3 className="text-lg font-medium text-green-400 mb-2 flex items-center justify-center">
               <FaCheckCircle className="mr-2" />
               Success
             </h3>
-            <p className="text-green-700">{successMessage}</p>
+            <p className="text-green-300">{successMessage}</p>
           </motion.div>
         )}
 
@@ -258,13 +257,13 @@ function HostSignIn() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-green-50 border border-green-200 rounded-lg p-6 text-center"
+            className="bg-[#002009] border border-green-900 rounded-lg p-6 text-center"
           >
-            <h3 className="text-lg font-medium text-green-800 mb-2 flex items-center justify-center">
+            <h3 className="text-lg font-medium text-green-400 mb-2 flex items-center justify-center">
               <FaCheckCircle className="mr-2" />
               Password reset email sent!
             </h3>
-            <p className="text-green-700">
+            <p className="text-green-300">
               Check your email at <span className="font-semibold">{resetEmail}</span> for instructions to reset your password.
             </p>
             <button
@@ -273,7 +272,7 @@ function HostSignIn() {
                 setResetEmailSent(false);
                 setResetEmail('');
               }}
-              className="mt-4 text-green-600 hover:text-green-800 font-medium"
+              className="mt-4 text-green-400 hover:cursor-pointer hover:text-green-300 font-medium transition-colors"
             >
               Back to Sign In
             </button>
@@ -283,12 +282,12 @@ function HostSignIn() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-gray-200"
+            className="bg-[#000f07] p-8 rounded-xl shadow-lg border border-green-900"
           >
             <form onSubmit={handlePasswordReset} className="space-y-6">
               <div>
-                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                  <FaEnvelope className="mr-2 text-green-600" />
+                <label htmlFor="reset-email" className="text-sm font-medium text-gray-300 mb-1 flex items-center">
+                  <FaEnvelope className="mr-2 text-[#34c239]" />
                   Email Address
                 </label>
                 <input
@@ -297,22 +296,22 @@ function HostSignIn() {
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  className={`w-full px-4 py-3 bg-[#002009] border ${errors.email ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                   required
                 />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
               </div>
 
               {errors.form && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                  <p className="text-sm text-red-700">{errors.form}</p>
+                <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded">
+                  <p className="text-sm text-red-400">{errors.form}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#34c239] cursor-pointer hover:bg-green-500 text-black py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -331,7 +330,7 @@ function HostSignIn() {
                   setErrors({});
                   setResetEmail('');
                 }}
-                className="w-full text-gray-600 hover:text-gray-800 font-medium text-center"
+                className="w-full text-gray-400 cursor-pointer hover:text-white font-medium text-center transition-colors"
               >
                 Back to Sign In
               </button>
@@ -342,12 +341,12 @@ function HostSignIn() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="bg-white p-8 rounded-xl shadow-sm border border-gray-200"
+            className="bg-[#000f07] p-8 rounded-xl shadow-lg border border-green-900"
           >
             <form onSubmit={handleSignIn} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                  <FaEnvelope className="mr-2 text-green-600" />
+                <label htmlFor="email" className="text-sm font-medium text-gray-300 mb-1 flex items-center">
+                  <FaEnvelope className="mr-2 text-[#34c239]" />
                   Email Address
                 </label>
                 <input
@@ -357,15 +356,15 @@ function HostSignIn() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your email"
-                  className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  className={`w-full px-4 py-3 bg-[#002009] border ${errors.email ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                   required
                 />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
               </div>
               
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
-                  <FaLock className="mr-2 text-green-600" />
+                <label htmlFor="password" className="text-sm font-medium text-gray-300 mb-1 flex items-center">
+                  <FaLock className="mr-2 text-[#34c239]" />
                   Password
                 </label>
                 <input
@@ -375,10 +374,10 @@ function HostSignIn() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className={`w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                  className={`w-full px-4 py-3 bg-[#002009] border ${errors.password ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                   required
                 />
-                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
               </div>
 
               <div className="flex items-center justify-between">
@@ -389,9 +388,9 @@ function HostSignIn() {
                     type="checkbox"
                     checked={formData.rememberMe}
                     onChange={handleChange}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-[#34c239] focus:ring-[#34c239] border-gray-600 rounded bg-gray-700"
                   />
-                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-400">
                     Remember me
                   </label>
                 </div>
@@ -399,22 +398,22 @@ function HostSignIn() {
                 <button
                   type="button"
                   onClick={() => setShowResetForm(true)}
-                  className="text-sm font-medium text-green-600 hover:text-green-500"
+                  className="text-sm font-medium cursor-pointer text-[#34c239] hover:text-green-400 transition-colors"
                 >
                   Forgot password?
                 </button>
               </div>
 
               {errors.form && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                  <p className="text-sm text-red-700">{errors.form}</p>
+                <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded">
+                  <p className="text-sm text-red-400">{errors.form}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#34c239] cursor-pointer hover:bg-green-500 text-black py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -436,10 +435,10 @@ function HostSignIn() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="mt-8 text-center text-sm text-gray-600"
+            className="mt-8 text-center text-sm text-gray-400"
           >
             Don't have an account?{' '}
-            <Link to="/host-signup" className="font-medium text-green-600 hover:text-green-500">
+            <Link to="/host-signup" className="font-medium text-[#34c239] hover:text-green-400 transition-colors">
               Sign up here
             </Link>
           </motion.div>
@@ -447,10 +446,10 @@ function HostSignIn() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
-        <div className="container mx-auto px-6 text-center text-gray-500">
+      <footer className="bg-black border-t border-gray-800 py-8 mt-16">
+        <div className="container mx-auto px-6 text-center text-gray-400">
           <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
-          <p> Powered By <a href="https://algoritic.com.ng" className="hover:text-green-600">Algoritic Inc</a></p>
+          <p>Powered By <a href="https://algoritic.com.ng" className="hover:text-[#34c239] transition-colors">Algoritic Inc</a></p>
         </div>
       </footer>
     </div>

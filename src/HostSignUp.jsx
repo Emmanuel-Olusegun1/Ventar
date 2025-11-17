@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   FaCalendarAlt, 
   FaUsers, 
@@ -143,20 +142,20 @@ function HostSignUp() {
   if (signupSuccess) {
     console.log('Rendering success modal');
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
         >
-          <FaCheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-          <p className="text-gray-600 mb-6">
+          <FaCheckCircle className="mx-auto h-16 w-16 text-[#34c239] mb-4" />
+          <h2 className="text-2xl font-bold text-[#d4d4d4] mb-2">Account Created!</h2>
+          <p className="text-gray-300 mb-6">
             Your host account has been created. Redirecting to sign-in page...
           </p>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="w-full bg-[#002009] rounded-full h-2.5">
             <motion.div 
-              className="bg-green-600 h-2.5 rounded-full"
+              className="bg-[#34c239] h-2.5 rounded-full"
               initial={{ width: '0%' }}
               animate={{ width: '100%' }}
               transition={{ duration: 2 }}
@@ -168,20 +167,20 @@ function HostSignUp() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#000000] text-[#e5e5e5]">
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <button 
             onClick={() => navigate('/')}
-            className="flex items-center text-gray-700 hover:text-green-600"
+            className="flex items-center cursor-pointer text-gray-300 hover:text-[#34c239] transition-colors"
           >
             <BsArrowLeft className="mr-2" />
             Back to Home
           </button>
           <button 
             onClick={() => navigate('/host-login')}
-            className="text-gray-700 hover:text-green-600 font-medium"
+            className="text-gray-300 cursor-pointer hover:text-[#34c239] font-medium transition-colors"
           >
             Sign In
           </button>
@@ -195,7 +194,7 @@ function HostSignUp() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full mb-6"
+            className="inline-flex items-center gap-2 bg-[#002009] text-[#34c239] px-4 py-2 rounded-full mb-6 border border-[#00331a]"
           >
             <BsLightningFill />
             <span className="font-medium">Start Hosting in minutes</span>
@@ -205,16 +204,16 @@ function HostSignUp() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-bold text-gray-900 mb-6"
+            className="text-3xl md:text-5xl font-bold text-[#d4d4d4] mb-6"
           >
-            Host Events Like a <span className="text-green-600">Pro</span>
+            Host Events Like a <span className="text-[#34c239]">Pro</span>
           </motion.h1>
           
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-gray-600 mb-10"
+            className="text-lg text-gray-300 mb-10"
           >
             Join thousands of successful event organizers who trust our platform to create memorable experiences.
           </motion.p>
@@ -229,11 +228,11 @@ function HostSignUp() {
             viewport={{ once: true }}
             className="lg:w-1/2"
           >
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Host Account</h2>
+            <div className="bg-[#000f07] p-8 rounded-xl shadow-lg border border-green-900">
+              <h2 className="text-2xl font-bold text-[#d4d4d4] mb-6">Create Host Account</h2>
               
               {errors.form && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                <div className="bg-red-900/20 border-l-4 border-red-500 p-4 mb-6 rounded">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
@@ -241,7 +240,7 @@ function HostSignUp() {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-red-700">{errors.form}</p>
+                      <p className="text-sm text-red-400">{errors.form}</p>
                     </div>
                   </div>
                 </div>
@@ -249,8 +248,8 @@ function HostSignUp() {
 
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name <span className="text-red-500">*</span>
+                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-1">
+                    Full Name <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -259,14 +258,14 @@ function HostSignUp() {
                     value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className={`w-full px-4 py-3 border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    className={`w-full px-4 py-3 bg-[#002009] border ${errors.fullName ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                   />
-                  {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
+                  {errors.fullName && <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>}
                 </div>
                 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address <span className="text-red-500">*</span>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+                    Email Address <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="email"
@@ -275,13 +274,13 @@ function HostSignUp() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Enter your email"
-                    className={`w-full px-4 py-3 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                    className={`w-full px-4 py-3 bg-[#002009] border ${errors.email ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                   />
-                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                  {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
                 </div>
                 
                 <div>
-                  <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="organization" className="block text-sm font-medium text-gray-300 mb-1">
                     Organization (Optional)
                   </label>
                   <input
@@ -291,12 +290,12 @@ function HostSignUp() {
                     value={formData.organization}
                     onChange={handleChange}
                     placeholder="Company or organization"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-[#002009] border border-green-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
                     Phone Number (Optional)
                   </label>
                   <input
@@ -306,13 +305,13 @@ function HostSignUp() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Enter your phone number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-[#002009] border border-green-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                    Password <span className="text-red-500">*</span>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+                    Password <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -322,22 +321,22 @@ function HostSignUp() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Create a password (min 8 characters)"
-                      className={`w-full px-4 py-3 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                      className={`w-full px-4 py-3 bg-[#002009] border ${errors.password ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-3.5 text-gray-500 hover:text-green-600"
+                      className="absolute right-3 top-3.5 text-gray-500 hover:text-[#34c239] transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                  {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password <span className="text-red-500">*</span>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-1">
+                    Confirm Password <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -347,23 +346,23 @@ function HostSignUp() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Confirm your password"
-                      className={`w-full px-4 py-3 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+                      className={`w-full px-4 py-3 bg-[#002009] border ${errors.confirmPassword ? 'border-red-500' : 'border-green-800'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500 transition-colors`}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-3.5 text-gray-500 hover:text-green-600"
+                      className="absolute cursor-pointer right-3 top-3.5 text-gray-500 hover:text-[#34c239] transition-colors"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>}
                 </div>
                 
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center"
+                  className="w-full bg-[#34c239] hover:bg-green-500 text-black py-3 px-6 rounded-lg font-medium transition-colors cursor-pointer flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -375,12 +374,12 @@ function HostSignUp() {
                   )}
                 </button>
                 
-                <p className="text-center text-gray-600">
+                <p className="text-center text-gray-400">
                   Already have an account?{' '}
                   <button 
                     type="button"
                     onClick={() => navigate('/host-login')}
-                    className="text-green-600 hover:underline"
+                    className="text-[#34c239] cursor-pointer hover:text-green-400 transition-colors"
                   >
                     Sign in here
                   </button>
@@ -396,37 +395,37 @@ function HostSignUp() {
             viewport={{ once: true }}
             className="lg:w-1/2"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            <h2 className="text-2xl font-bold text-[#d4d4d4] mb-8">
               Everything You Need to Host Successfully
             </h2>
-            <p className="text-gray-600 mb-10">
+            <p className="text-gray-300 mb-10">
               Powerful tools and features designed to make event hosting effortless and professional
             </p>
             
             <div className="space-y-8">
               {[
                 {
-                  icon: <FaCalendarAlt className="text-green-600 text-xl" />,
+                  icon: <FaCalendarAlt className="text-[#34c239] text-xl" />,
                   title: "Easy Event Creation",
                   description: "Create and customize events in minutes with our intuitive interface"
                 },
                 {
-                  icon: <FaUsers className="text-green-600 text-xl" />,
+                  icon: <FaUsers className="text-[#34c239] text-xl" />,
                   title: "Guest Management",
                   description: "Track registrations, send updates, and manage attendee lists effortlessly"
                 },
                 {
-                  icon: <FaChartLine className="text-green-600 text-xl" />,
+                  icon: <FaChartLine className="text-[#34c239] text-xl" />,
                   title: "Real-time Analytics",
                   description: "Monitor event performance with detailed insights and reporting"
                 },
                 {
-                  icon: <FaTools className="text-green-600 text-xl" />,
+                  icon: <FaTools className="text-[#34c239] text-xl" />,
                   title: "Time-saving Tools",
                   description: "Automated reminders, check-in systems, and seamless integrations"
                 },
                 {
-                  icon: <FaShieldAlt className="text-green-600 text-xl" />,
+                  icon: <FaShieldAlt className="text-[#34c239] text-xl" />,
                   title: "Secure & Reliable",
                   description: "Enterprise-grade security with 99.9% uptime guarantee"
                 }
@@ -436,19 +435,19 @@ function HostSignUp() {
                     {feature.icon}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
+                    <h3 className="text-lg font-semibold text-[#d4d4d4]">{feature.title}</h3>
+                    <p className="text-gray-300">{feature.description}</p>
                   </div>
                 </div>
               ))}
             </div>
             
             {/* Bottom CTA */}
-            <div className="mt-16 bg-green-50 rounded-xl p-8 border border-green-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="mt-16 bg-[#002009] rounded-xl p-8 border border-green-900">
+              <h3 className="text-xl font-bold text-[#d4d4d4] mb-4">
                 Ready to Create Amazing Events?
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-300 mb-6">
                 Join the community of successful event hosts and start creating memorable experiences today.
               </p>
             </div>
@@ -457,10 +456,10 @@ function HostSignUp() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-16">
-        <div className="container mx-auto px-6 text-center text-gray-500">
+      <footer className="bg-black border-t border-gray-800 py-8 mt-16">
+        <div className="container mx-auto px-6 text-center text-gray-400">
           <p>© {new Date().getFullYear()} Ventar. All rights reserved.</p>
-          <p> Powered By <a href="https://algoritic.com.ng" className="hover:text-green-600">Algoritic Inc</a></p>
+          <p>Powered By <a href="https://algoritic.com.ng" className="hover:text-[#34c239] transition-colors">Algoritic Inc</a></p>
         </div>
       </footer>
     </div>
