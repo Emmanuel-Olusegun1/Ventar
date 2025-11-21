@@ -25,10 +25,16 @@ import {
   FaBars,
   FaTimes,
   FaExclamationTriangle,
-  FaLayerGroup
+  FaLayerGroup,
+  FaEllipsisV,
+  FaExternalLinkAlt,
+  FaInfoCircle
 } from 'react-icons/fa';
-import { BsThreeDotsVertical } from 'react-icons/bs';
-import { HiOutlineViewGrid, HiOutlineViewList } from 'react-icons/hi';
+import { 
+  HiOutlineViewGrid, 
+  HiOutlineViewList,
+  HiOutlineSparkles 
+} from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase, setupAuthListener, getValidSession } from './supabaseClient';
@@ -39,9 +45,9 @@ function HostDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid');
   const [notifications, setNotifications] = useState([
-    { id: 1, message: '15 new registrations for Tech Conference', time: '2 mins ago', read: false, icon: <FaUserPlus className="text-[#34c239]" /> },
-    { id: 2, message: 'Your workshop reached 80% capacity', time: '1 hour ago', read: true, icon: <FaChartPie className="text-[#34c239]" /> },
-    { id: 3, message: 'Community Mixer starts tomorrow', time: '3 hours ago', read: true, icon: <FaCalendarAlt className="text-[#34c239]" /> }
+    { id: 1, message: '15 new registrations for Tech Conference', time: '2 mins ago', read: false, type: 'success' },
+    { id: 2, message: 'Your workshop reached 80% capacity', time: '1 hour ago', read: true, type: 'warning' },
+    { id: 3, message: 'Community Mixer starts tomorrow', time: '3 hours ago', read: true, type: 'info' }
   ]);
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
@@ -61,14 +67,151 @@ function HostDashboard() {
   });
   const [deletingEvent, setDeletingEvent] = useState(null);
   const [showCascadeModal, setShowCascadeModal] = useState(false);
+  const [hoveredEvent, setHoveredEvent] = useState(null);
 
-  // Navigation items
+  // Dark green color scheme
+  const colors = {
+    primary: '#34c239',
+    primaryDark: '#2aa82e',
+    background: '#000000',
+    surface: '#000f07',
+    surfaceLight: '#002009',
+    surfaceHover: '#00331a',
+    border: '#00331a',
+    textPrimary: '#ffffff',
+    textSecondary: '#d4d4d4',
+    textTertiary: '#a0a0a0',
+    success: '#34c239',
+    warning: '#ffb224',
+    error: '#ff5757',
+    info: '#34c239'
+  };
+
+  // Calculate dynamic badge counts
+  const getBadgeCounts = () => {
+    const totalEvents = events.length;
+    const activeEvents = events.filter(e => e.status === 'active').length;
+    const upcomingEvents = events.filter(e => e.status === 'upcoming').length;
+    const totalAttendees = events.reduce((sum, event) => sum + (event.registrations || 0), 0);
+    
+    return {
+      events: totalEvents,
+      attendees: totalAttendees > 99 ? '99+' : totalAttendees,
+      insights: activeEvents + upcomingEvents,
+      settings: 0 // Settings typically doesn't have a badge
+    };
+  };
+
+  const badgeCounts = getBadgeCounts();
+
+  // Navigation items with dynamic badges
   const navItems = [
-    { id: 'events', label: 'Events', icon: FaCalendarAlt },
-    { id: 'attendees', label: 'Attendees', icon: FaUserFriends },
-    { id: 'insights', label: 'Insights', icon: FaChartBar },
-    { id: 'settings', label: 'Settings', icon: FaSlidersH }
+    { id: 'events', label: 'Events', icon: FaCalendarAlt, badge: badgeCounts.events },
+    { id: 'attendees', label: 'Attendees', icon: FaUserFriends, badge: badgeCounts.attendees },
+    { id: 'insights', label: 'Insights', icon: FaChartBar, badge: badgeCounts.insights },
+    { id: 'settings', label: 'Settings', icon: FaSlidersH, badge: badgeCounts.settings }
   ];
+
+  // Quick actions
+  const quickActions = [
+    { 
+      icon: <FaPlus className="h-5 w-5" />, 
+      label: "New Event", 
+      description: "Create a new event",
+      action: "new-event",
+      gradient: "from-green-600 to-green-500"
+    },
+    { 
+      icon: <FaUserPlus className="h-5 w-5" />, 
+      label: "Invite Team", 
+      description: "Add team members",
+      action: "invite-team",
+      gradient: "from-green-700 to-green-600"
+    },
+    { 
+      icon: <FaQrcode className="h-5 w-5" />, 
+      label: "Check-in App", 
+      description: "Manage check-ins",
+      action: "checkin-app",
+      gradient: "from-green-800 to-green-700"
+    },
+    { 
+      icon: <FaChartPie className="h-5 w-5" />, 
+      label: "Reports", 
+      description: "View analytics",
+      action: "reports",
+      gradient: "from-green-900 to-green-800"
+    }
+  ];
+
+  // Stats data
+  const stats = [
+    { 
+      icon: FaCalendarAlt,
+      title: "Total Events",
+      value: events.length,
+      change: "+12%",
+      trend: "up",
+      color: colors.success
+    },
+    { 
+      icon: FaUsers,
+      title: "Total Attendees",
+      value: events.reduce((sum, event) => sum + (event.registrations || 0), 0),
+      change: "+24%",
+      trend: "up",
+      color: colors.success
+    },
+    { 
+      icon: FaRegCheckCircle,
+      title: "Active Events",
+      value: events.filter(e => e.status === 'active').length,
+      change: "+8%",
+      trend: "up",
+      color: colors.success
+    },
+    { 
+      icon: FaChartPie,
+      title: "Avg. Attendance",
+      value: `${Math.round(events.reduce((sum, event) => sum + event.progress, 0) / (events.length || 1))}%`,
+      change: "+5%",
+      trend: "up",
+      color: colors.success
+    }
+  ];
+
+  // Fix the getStatusColor function
+  const getStatusColor = (status) => {
+    const statusColors = {
+      active: colors.success,
+      upcoming: colors.success,
+      completed: colors.textTertiary,
+      draft: colors.warning,
+      cancelled: colors.error
+    };
+    return statusColors[status] || statusColors.draft;
+  };
+
+  const getStatusBgColor = (status) => {
+    const bgColors = {
+      active: `bg-[#002009]`,
+      upcoming: `bg-[#002009]`,
+      completed: `bg-[#002009]`,
+      draft: `bg-[#002009]`,
+      cancelled: `bg-[#002009]`
+    };
+    return bgColors[status] || bgColors.draft;
+  };
+
+  const getNotificationIcon = (type) => {
+    const icons = {
+      success: <FaRegCheckCircle className="text-[#34c239]" />,
+      warning: <FaExclamationTriangle className="text-yellow-500" />,
+      error: <FaExclamationTriangle className="text-red-500" />,
+      info: <FaInfoCircle className="text-[#34c239]" />
+    };
+    return icons[type] || icons.info;
+  };
 
   // Monitor localStorage changes
   useEffect(() => {
@@ -352,7 +495,7 @@ function HostDashboard() {
         message: 'Event deleted successfully',
         time: 'Just now',
         read: false,
-        icon: <FaRegCheckCircle className="text-[#34c239]" />
+        type: 'success'
       }]);
     } catch (error) {
       console.error('Unexpected error deleting event:', error);
@@ -400,17 +543,6 @@ function HostDashboard() {
     return `${import.meta.env.VITE_APP_URL}/register/${eventId}`;
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      active: 'bg-[#002009] text-[#34c239] border-[#00331a]',
-      upcoming: 'bg-[#002009] text-[#34c239] border-[#00331a]',
-      completed: 'bg-[#002009] text-gray-400 border-[#00331a]',
-      draft: 'bg-[#002009] text-yellow-400 border-[#00331a]',
-      cancelled: 'bg-[#002009] text-red-400 border-[#00331a]'
-    };
-    return colors[status] || colors.draft;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
@@ -425,7 +557,15 @@ function HostDashboard() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-4 md:mt-6 text-gray-400 font-medium text-sm md:text-base"
+            className="mt-4 md:mt-6 text-[#34c239] font-bold text-lg md:text-xl"
+          >
+            Ventar
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="mt-2 text-gray-400 font-medium text-sm md:text-base"
           >
             Loading your dashboard...
           </motion.p>
@@ -444,7 +584,7 @@ function HostDashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
               onClick={() => setShowMobileMenu(false)}
             />
             <motion.div
@@ -478,14 +618,23 @@ function HostDashboard() {
                       setActiveTab(item.id);
                       setShowMobileMenu(false);
                     }}
-                    className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-colors flex items-center space-x-3 ${
+                    className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-between group ${
                       activeTab === item.id
-                        ? 'bg-[#34c239] text-black'
+                        ? 'bg-[#34c239] text-black shadow-lg'
                         : 'text-gray-400 hover:text-white hover:bg-[#002009]'
                     }`}
                   >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
+                    <div className="flex items-center space-x-3">
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge > 0 && (
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        activeTab === item.id ? 'bg-black/20 text-black' : 'bg-[#002009] text-gray-300'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 ))}
               </nav>
@@ -494,8 +643,8 @@ function HostDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar - Desktop */}
-      <div className="hidden lg:block w-80 bg-[#000f07] border-r border-[#00331a]">
+      {/* Sidebar - Desktop - Fixed (no scroll) */}
+      <div className="hidden lg:flex flex-col w-80 bg-[#000f07] border-r border-[#00331a] fixed left-0 top-0 h-screen">
         <div className="p-6 border-b border-[#00331a]">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-[#34c239] rounded-xl flex items-center justify-center">
@@ -505,44 +654,81 @@ function HostDashboard() {
           </div>
         </div>
         
-        <nav className="p-6 space-y-2">
+        <nav className="flex-1 p-6 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-colors flex items-center space-x-3 ${
+              className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-between group ${
                 activeTab === item.id
                   ? 'bg-[#34c239] text-black shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-[#002009]'
               }`}
             >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <div className="flex items-center space-x-3">
+                <item.icon className="h-5 w-5" />
+                <span>{item.label}</span>
+              </div>
+              {item.badge > 0 && (
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  activeTab === item.id ? 'bg-black/20 text-black' : 'bg-[#002009] text-gray-300'
+                }`}>
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
+
+        {/* User Profile Section */}
+        <div className="p-6 border-t border-[#00331a]">
+          <div className="flex items-center space-x-3 p-3 rounded-xl bg-[#002009]">
+            <div className="w-10 h-10 bg-[#34c239] rounded-xl flex items-center justify-center">
+              <span className="text-black font-semibold text-sm">
+                {user ? user.email.charAt(0).toUpperCase() : 'U'}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-[#d4d4d4] truncate">
+                {user ? user.email.split('@')[0] : 'User'}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+            >
+              <FaSignOutAlt className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 flex flex-col lg:ml-80">
         {/* Header */}
         <header className="bg-[#000f07]/80 backdrop-blur-xl border-b border-[#00331a] sticky top-0 z-30">
-          <div className="px-4 sm:px-6 py-3">
+          <div className="px-4 sm:px-6 py-4">
             <div className="flex items-center justify-between">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setShowMobileMenu(true)}
-                className="lg:hidden p-2 rounded-lg hover:bg-[#002009] transition-colors"
-              >
-                <FaBars className="h-5 w-5 text-gray-400" />
-              </button>
+              {/* Mobile Menu Button & Title */}
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setShowMobileMenu(true)}
+                  className="lg:hidden p-2 rounded-xl hover:bg-[#002009] transition-colors"
+                >
+                  <FaBars className="h-5 w-5 text-gray-400" />
+                </button>
+                <div>
+                  <h1 className="text-xl font-bold text-[#d4d4d4]">
+                    {navItems.find(item => item.id === activeTab)?.label || 'Dashboard'}
+                  </h1>
+                  <p className="text-sm text-gray-400 hidden sm:block">
+                    Manage your events and track engagement
+                  </p>
+                </div>
+              </div>
 
-              {/* Page Title - Mobile */}
-              <h1 className="text-xl font-bold text-[#d4d4d4] lg:hidden">
-                {navItems.find(item => item.id === activeTab)?.label || 'Dashboard'}
-              </h1>
-
-              {/* Search Bar - Desktop */}
+              {/* Search Bar */}
               <div className="hidden md:block flex-1 max-w-md mx-6">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -551,7 +737,7 @@ function HostDashboard() {
                   <input
                     type="text"
                     placeholder="Search events..."
-                    className="pl-10 pr-4 py-2 w-full bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-gray-200 placeholder-gray-500"
+                    className="pl-10 pr-4 py-3 w-full bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-[#e5e5e5] placeholder-gray-500 transition-all"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -559,21 +745,21 @@ function HostDashboard() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-3">
                 {/* Search Button - Mobile */}
-                <button className="md:hidden p-2 rounded-lg hover:bg-[#002009] transition-colors">
+                <button className="md:hidden p-2 rounded-xl hover:bg-[#002009] transition-colors">
                   <FaSearch className="h-5 w-5 text-gray-400" />
                 </button>
 
                 {/* Notifications */}
                 <div className="relative notifications-dropdown">
                   <button
-                    className="relative p-2 rounded-lg hover:bg-[#002009] transition-colors"
+                    className="relative p-2 rounded-xl hover:bg-[#002009] transition-colors"
                     onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
                   >
                     <FaBell className="h-5 w-5 text-gray-400" />
                     {notifications.some(n => !n.read) && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#000f07]" />
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#000f07]" />
                     )}
                   </button>
 
@@ -583,7 +769,7 @@ function HostDashboard() {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-2 w-80 bg-[#000f07] rounded-2xl shadow-xl border border-[#00331a] z-40 overflow-hidden"
+                        className="absolute right-0 mt-2 w-96 bg-[#000f07] rounded-2xl shadow-xl border border-[#00331a] z-40 overflow-hidden"
                       >
                         <div className="p-4 border-b border-[#00331a]">
                           <div className="flex items-center justify-between">
@@ -609,7 +795,7 @@ function HostDashboard() {
                                 <div className={`p-2 rounded-xl ${
                                   notification.read ? 'bg-[#002009]' : 'bg-[#00331a]'
                                 }`}>
-                                  {notification.icon}
+                                  {getNotificationIcon(notification.type)}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-[#d4d4d4]">
@@ -629,61 +815,22 @@ function HostDashboard() {
                   </AnimatePresence>
                 </div>
 
-                {/* Profile */}
-                <div className="relative profile-dropdown">
-                  <button
-                    className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#002009] transition-colors"
-                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  >
-                    <div className="w-8 h-8 bg-[#34c239] rounded-lg flex items-center justify-center">
-                      <span className="text-black font-semibold text-sm">
-                        {user ? user.email.charAt(0).toUpperCase() : 'U'}
-                      </span>
-                    </div>
-                  </button>
-
-                  <AnimatePresence>
-                    {showProfileDropdown && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-2 w-48 bg-[#000f07] rounded-2xl shadow-xl border border-[#00331a] z-40 overflow-hidden"
-                      >
-                        <div className="p-4 border-b border-[#00331a]">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-[#34c239] rounded-xl flex items-center justify-center">
-                              <span className="text-black font-semibold">
-                                {user ? user.email.charAt(0).toUpperCase() : 'U'}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="font-medium text-[#d4d4d4] text-sm">
-                                {user ? user.email.split('@')[0] : 'User'}
-                              </p>
-                              <p className="text-xs text-gray-500">{user?.email}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="p-2">
-                          <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-sm font-medium text-red-400 hover:bg-red-900/20 transition-colors"
-                          >
-                            <FaSignOutAlt className="h-4 w-4" />
-                            <span>Sign out</span>
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                {/* New Event Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#34c239] hover:bg-green-500 text-black py-2.5 px-4 rounded-xl font-semibold flex items-center shadow-lg transition-all"
+                  onClick={() => navigate('/events/new')}
+                >
+                  <FaPlus className="mr-2" />
+                  New Event
+                </motion.button>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Main Content Area */}
+        {/* Main Content Area - Scrollable */}
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto px-4 sm:px-6 py-6">
             {/* Error Message */}
@@ -691,10 +838,13 @@ function HostDashboard() {
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-red-900/20 border border-red-800 rounded-xl p-4 mb-6 shadow-sm"
+                className="bg-red-900/20 border border-red-800 rounded-2xl p-4 mb-6 shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-red-400 text-sm">{errorMessage}</p>
+                  <div className="flex items-center space-x-3">
+                    <FaExclamationTriangle className="h-5 w-5 text-red-400" />
+                    <p className="text-red-400 text-sm">{errorMessage}</p>
+                  </div>
                   <button
                     className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors"
                     onClick={() => setErrorMessage(null)}
@@ -705,282 +855,98 @@ function HostDashboard() {
               </motion.div>
             )}
 
-            {/* Delete Confirmation Modal */}
-            <AnimatePresence>
-              {showDeleteModal && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 delete-modal"
-                >
-                  <motion.div
-                    initial={{ scale: 0.95, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.95, y: 20 }}
-                    className="bg-[#000f07] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-[#00331a]"
-                  >
-                    <h3 className="text-lg font-semibold text-[#d4d4d4] mb-3">Delete Event</h3>
-                    <p className="text-gray-400 mb-5">Are you sure you want to delete this event? This action cannot be undone.</p>
-                    <div className="flex justify-end space-x-3">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 text-gray-400 hover:text-white font-medium rounded-lg transition-colors"
-                        onClick={() => setShowDeleteModal(null)}
-                        disabled={deletingEvent}
-                      >
-                        Cancel
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
-                        onClick={() => handleDeleteEvent(showDeleteModal)}
-                        disabled={deletingEvent}
-                      >
-                        {deletingEvent ? 'Deleting...' : 'Delete'}
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Cascade Delete Confirmation Modal */}
-            <AnimatePresence>
-              {showCascadeModal && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 cascade-modal"
-                >
-                  <motion.div
-                    initial={{ scale: 0.95, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.95, y: 20 }}
-                    className="bg-[#000f07] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-[#00331a]"
-                  >
-                    <div className="flex items-center mb-4">
-                      <div className="p-2 bg-red-900/20 rounded-lg mr-3">
-                        <FaExclamationTriangle className="h-5 w-5 text-red-400" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-[#d4d4d4]">Cannot Delete Event</h3>
-                    </div>
-                    <p className="text-gray-400 mb-5">
-                      This event has registrations associated with it. Would you like to delete the event along with all its registrations?
+            {/* Welcome Section */}
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-[#000f07] to-black rounded-3xl p-8 border border-[#00331a]">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-[#d4d4d4] mb-2">
+                      Welcome back, {user ? user.email.split('@')[0] : 'Host'}! 👋
+                    </h1>
+                    <p className="text-gray-400 text-lg">
+                      Here's what's happening with your events today.
                     </p>
-                    <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 text-gray-400 hover:text-white font-medium rounded-lg transition-colors"
-                        onClick={() => setShowCascadeModal(false)}
-                        disabled={deletingEvent}
-                      >
-                        Cancel
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
-                        onClick={() => handleDeleteEvent(showCascadeModal, true)}
-                        disabled={deletingEvent}
-                      >
-                        {deletingEvent ? 'Deleting...' : 'Delete All'}
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Share Link/QR Code Modal */}
-            <AnimatePresence>
-              {showLinkModal && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 link-modal"
-                >
-                  <motion.div
-                    initial={{ scale: 0.95, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.95, y: 20 }}
-                    className="bg-[#000f07] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-[#00331a]"
-                  >
-                    <h3 className="text-lg font-semibold text-[#d4d4d4] mb-3">Share Event</h3>
-                    <p className="text-gray-400 mb-4">Use this link or QR code to invite attendees.</p>
-                    <div className="mb-4">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={getEventLink(showLinkModal)}
-                          readOnly
-                          className="flex-1 p-3 bg-[#002009] border border-[#00331a] rounded-lg text-gray-200 text-sm focus:outline-none"
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`p-3 rounded-lg ${copied ? 'bg-[#34c239] text-black' : 'bg-[#002009] text-gray-400 hover:bg-[#00331a]'} transition-colors`}
-                          onClick={() => handleCopyLink(getEventLink(showLinkModal))}
-                          aria-label="Copy link"
-                        >
-                          <FaCopy />
-                        </motion.button>
-                      </div>
-                      {copied && <p className="text-sm text-[#34c239] mt-2">Link copied!</p>}
-                    </div>
-                    <div className="flex justify-center mb-4">
-                      <QRCodeSVG
-                        value={getEventLink(showLinkModal)}
-                        size={160}
-                        bgColor="#000f07"
-                        fgColor="#34c239"
-                        level="H"
-                        className="rounded-lg"
-                      />
-                    </div>
+                  </div>
+                  <div className="flex space-x-3 mt-4 lg:mt-0">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-full py-2 text-gray-400 hover:text-white font-medium rounded-lg transition-colors"
-                      onClick={() => setShowLinkModal(null)}
+                      className="bg-[#002009] hover:bg-[#00331a] text-gray-400 py-2.5 px-5 rounded-xl font-medium flex items-center transition-colors"
+                      onClick={handleRefresh}
                     >
-                      Close
+                      <FaRedo className="mr-2" />
+                      Refresh
                     </motion.button>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Dashboard Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <div className="mb-4 md:mb-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#d4d4d4] mb-2">Event Dashboard</h1>
-                <p className="text-gray-400 text-sm sm:text-base">
-                  {user ? `Welcome back, ${user.email.split('@')[0]}!` : 'Manage your events and track engagement'}
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-[#34c239] hover:bg-green-500 text-black py-2.5 px-5 rounded-xl font-medium flex items-center shadow-md transition-colors"
-                  onClick={() => navigate('/events/new')}
-                >
-                  <FaPlus className="mr-2" />
-                  New Event
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-[#002009] hover:bg-[#00331a] text-gray-400 py-2.5 px-5 rounded-xl font-medium flex items-center shadow-sm transition-colors"
-                  onClick={handleRefresh}
-                >
-                  <FaRedo className="mr-2" />
-                  Refresh
-                </motion.button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* No Events Message */}
-            {events.length === 0 && !searchQuery && !errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-[#000f07] rounded-2xl border border-[#00331a] p-8 text-center mb-8 shadow-sm"
-              >
-                <div className="w-20 h-20 bg-[#002009] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaCalendarAlt className="h-10 w-10 text-[#34c239]" />
-                </div>
-                <h2 className="text-xl font-semibold text-[#d4d4d4] mb-2">Welcome to Ventar!</h2>
-                <p className="text-gray-400 mb-4">No events found. Create your first event to get started.</p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-[#34c239] hover:bg-green-500 text-black py-2.5 px-5 rounded-xl font-medium flex items-center mx-auto shadow-md transition-colors"
-                  onClick={() => navigate('/events/new')}
-                >
-                  <FaPlus className="mr-2" />
-                  Create Your First Event
-                </motion.button>
-              </motion.div>
-            )}
-
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {[
-                { 
-                  icon: FaCalendarAlt,
-                  title: "Total Events",
-                  value: events.length,
-                  change: "+12%",
-                  trend: "up",
-                  color: "text-[#34c239]",
-                  bgColor: "bg-[#002009]"
-                },
-                { 
-                  icon: FaUsers,
-                  title: "Total Attendees",
-                  value: events.reduce((sum, event) => sum + (event.registrations || 0), 0),
-                  change: "+24%",
-                  trend: "up",
-                  color: "text-[#34c239]",
-                  bgColor: "bg-[#002009]"
-                },
-                { 
-                  icon: FaRegCheckCircle,
-                  title: "Active Events",
-                  value: events.filter(e => e.status === 'active').length,
-                  change: "+8%",
-                  trend: "up",
-                  color: "text-[#34c239]",
-                  bgColor: "bg-[#002009]"
-                },
-                { 
-                  icon: FaChartPie,
-                  title: "Avg. Attendance",
-                  value: `${Math.round(events.reduce((sum, event) => sum + event.progress, 0) / (events.length || 1))}%`,
-                  change: "+5%",
-                  trend: "up",
-                  color: "text-[#34c239]",
-                  bgColor: "bg-[#002009]"
-                }
-              ].map((stat, index) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {stats.map((stat, index) => (
                 <motion.div
                   key={index}
-                  whileHover={{ y: -2 }}
-                  className="bg-[#000f07] rounded-xl p-4 border border-[#00331a] shadow-sm hover:shadow-md transition-all duration-200"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -4 }}
+                  className="bg-[#000f07] rounded-2xl p-6 border border-[#00331a] hover:border-[#34c239]/30 transition-all duration-200 group"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  <div className="flex items-center justify-between mb-4">
+                    <div 
+                      className="p-3 rounded-xl bg-[#002009] group-hover:scale-110 transition-transform duration-200"
+                      style={{ backgroundColor: `${stat.color}20` }}
+                    >
+                      <stat.icon 
+                        className="h-6 w-6" 
+                        style={{ color: stat.color }}
+                      />
                     </div>
-                    <span className={`text-xs font-medium ${
-                      stat.trend === 'up' ? 'text-[#34c239]' : 'text-red-400'
+                    <span className={`text-sm font-medium ${
+                      stat.trend === 'up' ? 'text-[#34c239]' : 'text-red-500'
                     }`}>
                       {stat.change}
                     </span>
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-[#d4d4d4]">{stat.value}</p>
-                    <p className="text-xs text-gray-400 mt-1">{stat.title}</p>
+                    <p className="text-2xl font-bold text-[#d4d4d4] mb-1">{stat.value}</p>
+                    <p className="text-sm text-gray-400">{stat.title}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
 
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {quickActions.map((action, index) => (
+                <motion.button
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`bg-gradient-to-br ${action.gradient} p-4 rounded-2xl flex flex-col items-center text-white shadow-lg hover:shadow-xl transition-all duration-200`}
+                  onClick={() => handleQuickAction(action.action)}
+                >
+                  <div className="p-3 rounded-xl bg-white/10 mb-3">
+                    {action.icon}
+                  </div>
+                  <span className="font-semibold text-sm mb-1">{action.label}</span>
+                  <span className="text-xs text-white/70">{action.description}</span>
+                </motion.button>
+              ))}
+            </div>
+
             {/* Events Section */}
-            <div className="bg-[#000f07] rounded-xl border border-[#00331a] shadow-sm overflow-hidden">
+            <div className="bg-[#000f07] rounded-2xl border border-[#00331a] shadow-sm overflow-hidden">
               {/* Header */}
-              <div className="p-4 sm:p-6 border-b border-[#00331a]">
+              <div className="p-6 border-b border-[#00331a]">
                 <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h2 className="text-lg sm:text-xl font-semibold text-[#d4d4d4]">Your Events</h2>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                    <h2 className="text-xl font-bold text-[#d4d4d4]">Your Events</h2>
+                    <p className="text-gray-400 text-sm mt-1">
                       {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
                     </p>
                   </div>
@@ -1018,7 +984,7 @@ function HostDashboard() {
                       <input
                         type="text"
                         placeholder="Search events..."
-                        className="pl-10 pr-4 py-2 w-full bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-sm text-gray-200 placeholder-gray-500"
+                        className="pl-10 pr-4 py-2 w-full bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-sm text-[#e5e5e5] placeholder-gray-500"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -1027,7 +993,7 @@ function HostDashboard() {
                     {/* Filter Toggle */}
                     <button
                       onClick={() => setShowFilters(!showFilters)}
-                      className="flex items-center space-x-2 px-3 py-2 bg-[#002009] border border-[#00331a] rounded-xl hover:bg-[#00331a] transition-colors text-sm"
+                      className="flex items-center space-x-2 px-4 py-2.5 bg-[#002009] border border-[#00331a] rounded-xl hover:bg-[#00331a] transition-colors text-sm"
                     >
                       <FaFilter className="h-4 w-4 text-gray-400" />
                       <span className="font-medium text-gray-300">Filters</span>
@@ -1045,16 +1011,16 @@ function HostDashboard() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3"
+                      className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
                     >
                       <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-1">
+                        <label className="block text-xs font-medium text-gray-400 mb-2">
                           Status
                         </label>
                         <select
                           value={selectedFilters.status}
                           onChange={(e) => setSelectedFilters(prev => ({ ...prev, status: e.target.value }))}
-                          className="w-full px-3 py-2 bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-sm text-gray-200"
+                          className="w-full px-4 py-2.5 bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-sm text-[#e5e5e5]"
                         >
                           <option value="all">All Statuses</option>
                           <option value="active">Active</option>
@@ -1064,13 +1030,13 @@ function HostDashboard() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-1">
+                        <label className="block text-xs font-medium text-gray-400 mb-2">
                           Date
                         </label>
                         <select
                           value={selectedFilters.date}
                           onChange={(e) => setSelectedFilters(prev => ({ ...prev, date: e.target.value }))}
-                          className="w-full px-3 py-2 bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-sm text-gray-200"
+                          className="w-full px-4 py-2.5 bg-[#002009] border border-[#00331a] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#34c239] focus:border-transparent text-sm text-[#e5e5e5]"
                         >
                           <option value="all">All Dates</option>
                           <option value="upcoming">Upcoming</option>
@@ -1083,87 +1049,103 @@ function HostDashboard() {
               </div>
 
               {/* Events Content */}
-              <div className="p-4 sm:p-6">
+              <div className="p-6">
                 {filteredEvents.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-[#002009] rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaCalendarAlt className="h-8 w-8 text-gray-500" />
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 bg-[#002009] rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FaCalendarAlt className="h-10 w-10 text-gray-600" />
                     </div>
-                    <h3 className="text-base font-medium text-[#d4d4d4] mb-2">No events found</h3>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-[#d4d4d4] mb-2">No events found</h3>
+                    <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
                       {searchQuery || selectedFilters.status !== 'all' || selectedFilters.date !== 'all'
-                        ? 'Try adjusting your search or filters'
-                        : 'Get started by creating your first event'
+                        ? 'Try adjusting your search or filters to find what you\'re looking for.'
+                        : 'Get started by creating your first event and manage everything in one place.'
                       }
                     </p>
-                    <button
-                      onClick={() => {
-                        setSearchQuery('');
-                        setSelectedFilters({ status: 'all', date: 'all' });
-                      }}
-                      className="bg-[#34c239] hover:bg-green-500 text-black py-2 px-4 rounded-xl font-medium text-sm transition-colors"
-                    >
-                      {searchQuery || selectedFilters.status !== 'all' || selectedFilters.date !== 'all'
-                        ? 'Clear Filters'
-                        : 'Create Event'
-                      }
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSelectedFilters({ status: 'all', date: 'all' });
+                        }}
+                        className="bg-[#002009] hover:bg-[#00331a] text-[#e5e5e5] py-2.5 px-6 rounded-xl font-medium transition-colors"
+                      >
+                        {searchQuery || selectedFilters.status !== 'all' || selectedFilters.date !== 'all'
+                          ? 'Clear Filters'
+                          : 'Explore Templates'
+                        }
+                      </button>
+                      <button
+                        onClick={() => navigate('/events/new')}
+                        className="bg-[#34c239] hover:bg-green-500 text-black py-2.5 px-6 rounded-xl font-medium transition-all"
+                      >
+                        Create Event
+                      </button>
+                    </div>
                   </div>
                 ) : viewMode === 'grid' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredEvents.map((event) => (
                       <motion.div
                         key={event.id}
-                        whileHover={{ y: -2 }}
-                        className="bg-[#000f07] border border-[#00331a] rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        whileHover={{ y: -4 }}
+                        className="bg-[#000f07] rounded-2xl border border-[#00331a] overflow-hidden hover:shadow-xl transition-all duration-300 group"
+                        onMouseEnter={() => setHoveredEvent(event.id)}
+                        onMouseLeave={() => setHoveredEvent(null)}
                       >
-                        <div className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <div className="p-2 bg-[#002009] rounded-lg">
-                                <FaCalendarAlt className="h-4 w-4 text-[#34c239]" />
+                        <div className="p-5">
+                          {/* Header */}
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 bg-[#002009] rounded-xl group-hover:scale-110 transition-transform duration-200">
+                                <FaCalendarAlt className="h-5 w-5 text-[#34c239]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-[#d4d4d4] text-sm line-clamp-1">{event.name}</h3>
-                                <p className="text-gray-500 text-xs">#{event.workshop_number || 'N/A'}</p>
+                                <h3 className="font-semibold text-[#d4d4d4] text-lg line-clamp-1 group-hover:text-[#34c239] transition-colors">
+                                  {event.name}
+                                </h3>
+                                <p className="text-gray-400 text-sm">#{event.workshop_number || 'N/A'}</p>
                               </div>
                             </div>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="text-gray-500 hover:text-gray-300 transition-colors"
-                              aria-label="More options"
-                            >
-                              <BsThreeDotsVertical />
-                            </motion.button>
+                            <div className="relative">
+                              <button className="p-2 text-gray-500 hover:text-gray-300 transition-colors">
+                                <FaEllipsisV className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
 
-                          <div className="space-y-3">
+                          {/* Stats */}
+                          <div className="space-y-4">
                             <div className="flex justify-between items-center">
                               <div>
-                                <p className="text-gray-500 text-xs">Date</p>
+                                <p className="text-gray-400 text-xs">Date</p>
                                 <p className="font-medium text-[#d4d4d4] text-sm">{event.date}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-gray-500 text-xs">Registrations</p>
+                                <p className="text-gray-400 text-xs">Registrations</p>
                                 <p className="font-medium text-[#d4d4d4] text-sm">
                                   {event.registrations || 0}/{event.capacity || 0}
                                 </p>
                               </div>
                             </div>
 
+                            {/* Progress Bar */}
                             <div>
-                              <div className="w-full bg-[#002009] rounded-full h-2 mb-1">
-                                <div
-                                  className="bg-[#34c239] h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${event.progress}%` }}
-                                ></div>
+                              <div className="w-full bg-[#002009] rounded-full h-2 mb-2">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${event.progress}%` }}
+                                  className="bg-[#34c239] h-2 rounded-full transition-all duration-500"
+                                />
                               </div>
-                              <div className="flex justify-between mt-1.5">
-                                <span className="text-xs text-gray-500">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-gray-400">
                                   {Math.round(event.progress)}% full
                                 </span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(event.status)}`}>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBgColor(event.status)}`}
+                                      style={{ color: getStatusColor(event.status) }}>
                                   {event.status?.charAt(0)?.toUpperCase() + event.status?.slice(1) || 'N/A'}
                                 </span>
                               </div>
@@ -1171,25 +1153,48 @@ function HostDashboard() {
                           </div>
                         </div>
 
-                        <div className="border-t border-[#00331a] px-4 py-3 bg-[#002009] flex flex-wrap gap-3">
-                          {[
-                            { action: 'manage', icon: FaUsers, label: 'Manage', color: 'text-[#34c239] hover:text-green-400' },
-                            { action: 'checkin', icon: FaQrcode, label: 'Check-in', color: 'text-gray-400 hover:text-gray-200' },
-                            { action: 'insights', icon: FaChartPie, label: 'Insights', color: 'text-[#34c239] hover:text-green-400' },
-                            { action: 'delete', icon: FaTrash, label: 'Delete', color: 'text-red-400 hover:text-red-300' },
-                            { action: 'share', icon: FaLink, label: 'Share', color: 'text-[#34c239] hover:text-green-400' }
-                          ].map((btn) => (
-                            <motion.button
-                              key={btn.action}
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              className={`text-xs font-medium transition-colors ${btn.color}`}
-                              onClick={() => handleEventAction(event.id, btn.action)}
-                            >
-                              <btn.icon className="h-3 w-3 inline mr-1" />
-                              <span className="hidden sm:inline">{btn.label}</span>
-                            </motion.button>
-                          ))}
+                        {/* Actions */}
+                        <div className="border-t border-[#00331a] px-5 py-4 bg-[#002009] backdrop-blur-sm">
+                          <div className="flex items-center justify-between">
+                            <div className="flex space-x-2">
+                              {[
+                                { action: 'manage', icon: FaUsers, label: 'Manage' },
+                                { action: 'checkin', icon: FaQrcode, label: 'Check-in' },
+                                { action: 'insights', icon: FaChartPie, label: 'Insights' },
+                              ].map((btn) => (
+                                <motion.button
+                                  key={btn.action}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  className="p-2 text-gray-400 hover:text-[#34c239] transition-colors rounded-lg hover:bg-[#00331a]"
+                                  onClick={() => handleEventAction(event.id, btn.action)}
+                                  title={btn.label}
+                                >
+                                  <btn.icon className="h-4 w-4" />
+                                </motion.button>
+                              ))}
+                            </div>
+                            <div className="flex space-x-2">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="p-2 text-gray-400 hover:text-[#34c239] transition-colors rounded-lg hover:bg-[#00331a]"
+                                onClick={() => handleEventAction(event.id, 'share')}
+                                title="Share"
+                              >
+                                <FaLink className="h-4 w-4" />
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-[#00331a]"
+                                onClick={() => handleEventAction(event.id, 'delete')}
+                                title="Delete"
+                              >
+                                <FaTrash className="h-4 w-4" />
+                              </motion.button>
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -1199,55 +1204,58 @@ function HostDashboard() {
                     {filteredEvents.map((event) => (
                       <motion.div
                         key={event.id}
-                        whileHover={{ x: 2 }}
-                        className="bg-[#000f07] border border-[#00331a] rounded-xl p-4 hover:shadow-md transition-all duration-200"
+                        whileHover={{ x: 4 }}
+                        className="bg-[#000f07] border border-[#00331a] rounded-2xl p-5 hover:shadow-lg transition-all duration-200 group"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[#002009] rounded-lg">
-                              <FaCalendarAlt className="h-4 w-4 text-[#34c239]" />
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                          <div className="flex items-center space-x-4">
+                            <div className="p-3 bg-[#002009] rounded-xl group-hover:scale-110 transition-transform duration-200">
+                              <FaCalendarAlt className="h-5 w-5 text-[#34c239]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-[#d4d4d4] text-sm">{event.name}</h3>
-                              <p className="text-gray-500 text-xs">#{event.workshop_number || 'N/A'}</p>
+                              <h3 className="font-semibold text-[#d4d4d4] text-lg group-hover:text-[#34c239] transition-colors">
+                                {event.name}
+                              </h3>
+                              <p className="text-gray-400 text-sm">#{event.workshop_number || 'N/A'}</p>
                             </div>
                           </div>
                           
-                          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                            <div className="text-left sm:text-right">
-                              <p className="text-gray-500 text-xs">Date</p>
+                          <div className="flex flex-col lg:flex-row lg:items-center space-y-3 lg:space-y-0 lg:space-x-6">
+                            <div className="text-left lg:text-right">
+                              <p className="text-gray-400 text-xs">Date</p>
                               <p className="font-medium text-[#d4d4d4] text-sm">{event.date}</p>
                             </div>
                             
-                            <div className="w-full sm:w-20">
-                              <div className="w-full bg-[#002009] rounded-full h-2 mb-1">
+                            <div className="w-full lg:w-32">
+                              <div className="w-full bg-[#002009] rounded-full h-2 mb-2">
                                 <div
-                                  className="bg-[#34c239] h-2 rounded-full"
+                                  className="bg-[#34c239] h-2 rounded-full transition-all duration-500"
                                   style={{ width: `${event.progress}%` }}
                                 />
                               </div>
-                              <p className="text-gray-500 text-xs text-center">
+                              <p className="text-gray-400 text-xs text-center">
                                 {event.registrations}/{event.capacity}
                               </p>
                             </div>
                             
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(event.status)} self-start sm:self-auto`}>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBgColor(event.status)} self-start lg:self-auto`}
+                                  style={{ color: getStatusColor(event.status) }}>
                               {event.status?.charAt(0)?.toUpperCase() + event.status?.slice(1) || 'N/A'}
                             </span>
                             
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1">
                               {[
-                                { action: 'manage', icon: FaUsers, color: 'text-[#34c239] hover:text-green-400' },
-                                { action: 'checkin', icon: FaQrcode, color: 'text-gray-400 hover:text-gray-200' },
-                                { action: 'insights', icon: FaChartPie, color: 'text-[#34c239] hover:text-green-400' },
-                                { action: 'delete', icon: FaTrash, color: 'text-red-400 hover:text-red-300' },
-                                { action: 'share', icon: FaLink, color: 'text-[#34c239] hover:text-green-400' }
+                                { action: 'manage', icon: FaUsers, color: 'hover:text-[#34c239]' },
+                                { action: 'checkin', icon: FaQrcode, color: 'hover:text-[#34c239]' },
+                                { action: 'insights', icon: FaChartPie, color: 'hover:text-[#34c239]' },
+                                { action: 'share', icon: FaLink, color: 'hover:text-[#34c239]' },
+                                { action: 'delete', icon: FaTrash, color: 'hover:text-red-500' }
                               ].map((btn) => (
                                 <motion.button
                                   key={btn.action}
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
-                                  className={`p-1.5 rounded-lg hover:bg-[#002009] transition-colors ${btn.color}`}
+                                  className={`p-2 text-gray-400 rounded-lg hover:bg-[#002009] transition-colors ${btn.color}`}
                                   onClick={() => handleEventAction(event.id, btn.action)}
                                 >
                                   <btn.icon className="h-4 w-4" />
@@ -1262,94 +1270,115 @@ function HostDashboard() {
                 )}
               </div>
             </div>
-
-            {/* Recent Activity & Quick Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              {/* Recent Activity */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-[#000f07] rounded-xl border border-[#00331a] shadow-sm"
-              >
-                <div className="p-4 sm:p-6 border-b border-[#00331a]">
-                  <h2 className="font-semibold text-lg text-[#d4d4d4]">Recent Activity</h2>
-                </div>
-                <div className="divide-y divide-[#00331a]">
-                  <AnimatePresence>
-                    {notifications.slice(0, 4).map(notification => (
-                      <motion.div
-                        key={notification.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className={`p-4 ${notification.read ? 'bg-[#000f07]' : 'bg-[#002009]'} hover:bg-[#002009] cursor-pointer transition-colors`}
-                        onClick={() => toggleNotificationRead(notification.id)}
-                      >
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 mt-0.5">
-                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${notification.read ? 'bg-[#002009]' : 'bg-[#00331a]'}`}>
-                              {notification.icon}
-                            </div>
-                          </div>
-                          <div className="ml-3 flex-1">
-                            <p className="text-sm font-medium text-[#d4d4d4]">{notification.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
-                          </div>
-                          {!notification.read && (
-                            <div className="ml-3 flex-shrink-0">
-                              <span className="h-2 w-2 rounded-full bg-[#34c239]"></span>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-                <div className="p-4 border-t border-[#00331a] text-center">
-                  <button
-                    className="text-sm font-medium text-[#34c239] hover:text-green-400 transition-colors"
-                    onClick={() => navigate('/notifications')}
-                  >
-                    View all activity
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* Quick Actions */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-[#000f07] rounded-xl border border-[#00331a] shadow-sm"
-              >
-                <div className="p-4 sm:p-6 border-b border-[#00331a]">
-                  <h2 className="font-semibold text-lg text-[#d4d4d4]">Quick Actions</h2>
-                </div>
-                <div className="grid grid-cols-2 gap-4 p-4 sm:p-6">
-                  {[
-                    { icon: <FaPlus className="h-5 w-5" />, label: "New Event", color: "bg-[#002009] text-[#34c239]", action: "new-event" },
-                    { icon: <FaUserPlus className="h-5 w-5" />, label: "Invite Team", color: "bg-[#002009] text-[#34c239]", action: "invite-team" },
-                    { icon: <FaQrcode className="h-5 w-5" />, label: "Check-in App", color: "bg-[#002009] text-[#34c239]", action: "checkin-app" },
-                    { icon: <FaChartPie className="h-5 w-5" />, label: "Reports", color: "bg-[#002009] text-[#34c239]", action: "reports" }
-                  ].map((action, index) => (
-                    <motion.button
-                      key={index}
-                      whileHover={{ y: -2, shadow: 'md' }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`p-4 rounded-xl border border-[#00331a] flex flex-col items-center hover:shadow-md transition-all ${action.color}`}
-                      onClick={() => handleQuickAction(action.action)}
-                    >
-                      <div className="p-3 rounded-xl bg-[#000f07]/50">
-                        {action.icon}
-                      </div>
-                      <span className="text-sm font-medium text-gray-300 mt-2">{action.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
           </div>
         </main>
       </div>
+
+      {/* Modals */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 delete-modal"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-[#000f07] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-[#00331a]"
+            >
+              <div className="flex items-center mb-4">
+                <div className="p-2 bg-red-900/20 rounded-lg mr-3">
+                  <FaExclamationTriangle className="h-5 w-5 text-red-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#d4d4d4]">Delete Event</h3>
+              </div>
+              <p className="text-gray-400 mb-6">Are you sure you want to delete this event? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 text-gray-400 hover:text-white font-medium rounded-xl transition-colors"
+                  onClick={() => setShowDeleteModal(null)}
+                  disabled={deletingEvent}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium disabled:opacity-50 transition-colors"
+                  onClick={() => handleDeleteEvent(showDeleteModal)}
+                  disabled={deletingEvent}
+                >
+                  {deletingEvent ? 'Deleting...' : 'Delete'}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showLinkModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 link-modal"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-[#000f07] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-[#00331a]"
+            >
+              <h3 className="text-lg font-semibold text-[#d4d4d4] mb-3">Share Event</h3>
+              <p className="text-gray-400 mb-4">Use this link or QR code to invite attendees.</p>
+              <div className="mb-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={getEventLink(showLinkModal)}
+                    readOnly
+                    className="flex-1 p-3 bg-[#002009] border border-[#00331a] rounded-xl text-[#e5e5e5] text-sm focus:outline-none"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`p-3 rounded-xl ${copied ? 'bg-[#34c239] text-black' : 'bg-[#002009] text-gray-400 hover:bg-[#00331a]'} transition-colors`}
+                    onClick={() => handleCopyLink(getEventLink(showLinkModal))}
+                    aria-label="Copy link"
+                  >
+                    <FaCopy />
+                  </motion.button>
+                </div>
+                {copied && <p className="text-sm text-[#34c239] mt-2">Link copied!</p>}
+              </div>
+              <div className="flex justify-center mb-4">
+                <QRCodeSVG
+                  value={getEventLink(showLinkModal)}
+                  size={160}
+                  bgColor="#000f07"
+                  fgColor="#34c239"
+                  level="H"
+                  className="rounded-lg"
+                />
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full py-2.5 text-gray-400 hover:text-white font-medium rounded-xl transition-colors"
+                onClick={() => setShowLinkModal(null)}
+              >
+                Close
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
